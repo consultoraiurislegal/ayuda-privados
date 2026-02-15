@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privados - Auxilio Legal</title>
+        <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a237e">
+    <link rel="apple-touch-icon" href="icono-192.png">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #1a237e;
+            --secondary: #c62828;
+            --accent: #25D366;
+            --bg: #f0f2f5;
+            --white: #ffffff;
+            --purple: #9c27b0;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 20px; }
+        
+        /* Encabezado */
+        header { 
+            background: var(--primary); color: var(--white); 
+            padding: 25px 15px; text-align: center; 
+            border-radius: 0 0 25px 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        header h1 { margin: 0; font-size: 1.8em; letter-spacing: 2px; }
+        header p { font-size: 0.85em; margin-top: 10px; line-height: 1.4; opacity: 0.9; }
+
+        .container { padding: 15px; }
+        .view { display: none; animation: fadeIn 0.4s; }
+        .active-view { display: block; }
+
+        /* Tarjeta de Gancho WhatsApp */
+        .hook-card {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white; padding: 20px; border-radius: 15px;
+            text-align: center; margin-bottom: 20px;
+        }
+        .btn-private {
+            background: var(--accent); color: white; padding: 12px;
+            border-radius: 8px; text-decoration: none; display: block;
+            font-weight: bold; margin-top: 12px; border: none; width: 100%;
+        }
+
+        /* Nav Grid */
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .nav-item { 
+            background: var(--white); padding: 20px; border-radius: 15px; 
+            text-align: center; font-weight: bold; color: var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;
+        }
+
+        /* ACADEMIA JURÍDICA (DISEÑO NUEVO) */
+        .academia-header { 
+            background: #fff; border: 1px solid #e1bee7; padding: 15px; 
+            border-radius: 15px; margin-bottom: 20px; 
+        }
+        .search-box input { 
+            width: 93%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px;
+        }
+        .card-juridica {
+            background: white; border-radius: 15px; padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px;
+            border-left: 5px solid var(--purple);
+        }
+        .tag-tutorial { background: #673ab7; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; }
+        .author-info { font-size: 0.75em; color: #666; margin: 10px 0; }
+        
+        .card-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 15px; }
+        .btn-action { border: none; padding: 8px; border-radius: 5px; color: white; font-size: 0.65em; font-weight: bold; }
+
+        /* Chat Público */
+        .chat-container { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        #public-messages { height: 150px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+        .msg { margin-bottom: 8px; padding: 8px; background: #f1f3f9; border-radius: 8px; font-size: 0.9em; }
+
+        /* Admin */
+        #admin-panel { display: none; background: #fff3cd; padding: 15px; border-radius: 15px; border: 2px dashed #ffeeba; margin-top: 20px; }
+        .admin-input { width: 92%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<header id="main-header">
+    <h1>PRIVADOS</h1>
+    <p>Orientación jurídica gratuita para familiares de detenidos en Táchira. Facilitamos el acceso a la justicia con ética y confidencialidad profesional.</p>
+</header>
+
+<div class="container">
+
+    <div id="view-home" class="view active-view">
+        <div class="chat-container">
+            <h4 style="margin:0; color: var(--secondary)">💬 Chat Público de Apoyo</h4>
+            <div id="public-messages"></div>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="chat-input" style="flex:1; padding:10px;" placeholder="Escribe tu duda...">
+                <button onclick="enviarMensajePublico()" style="background:var(--primary); color:white; border:none; padding:10px; border-radius:5px;">Enviar</button>
+            </div>
+        </div>
+
+        <div class="hook-card">
+            <h3>¿Consulta Privada y Gratuita?</h3>
+            <p>Hable con el Dr. Charles Reyes para una segunda opinión confidencial sobre su caso.</p>
+            <button onclick="showView('view-chat-privado')" class="btn-private">SOLICITAR SEGUNDA OPINIÓN</button>
+        </div>
+
+        <div class="nav-grid">
+            <div class="nav-item" onclick="showView('view-org')">🏛️ Organismos</div>
+            <div class="nav-item" onclick="showView('view-proceso')">⚖️ Academia</div>
+            <div class="nav-item" onclick="showView('view-videos')">🎥 Videos</div>
+            <div class="nav-item" onclick="showView('view-home')">🏠 Inicio</div>
+        </div>
+    </div>
+
+    <div id="view-proceso" class="view">
+        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+        <div class="academia-header">
+            <h3 style="margin:0; color:var(--purple);">💡 ACADEMIA Y GUÍA</h3>
+            <div class="search-box">
+                <input type="text" id="busqueda" onkeyup="filtrar()" placeholder="🔍 Buscar tema (ej: audiencia, juicio)...">
+            </div>
+        </div>
+        <div id="lista-proceso-dinamica"></div>
+    </div>
+
+    <div id="view-org" class="view">
+        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+        <h2>Sistema de Justicia</h2>
+        <div id="lista-organismos"></div>
+    </div>
+
+    <div id="view-videos" class="view">
+        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+        <h2>Videos Guía</h2>
+        <div class="card-juridica">Contenido multimedia en proceso...</div>
+    </div>
+
+    <div id="admin-panel">
+        <h3>Panel Administrador</h3>
+        <input type="text" id="adm-proc-tit" class="admin-input" placeholder="Título de la Fase">
+        <textarea id="adm-proc-txt" class="admin-input" placeholder="Explicación jurídica detallada..."></textarea>
+        <button onclick="guardarProc()" style="width:100%; background:var(--purple); color:white; padding:10px; border:none; border-radius:5px;">Publicar en Academia</button>
+        <hr>
+        <input type="text" id="adm-org-nom" class="admin-input" placeholder="Organismo">
+        <input type="text" id="adm-org-tel" class="admin-input" placeholder="Teléfono/Dirección">
+        <button onclick="guardarOrg()" style="width:100%; background:var(--primary); color:white; padding:10px; border:none; border-radius:5px;">Guardar Organismo</button>
+        <button onclick="this.parentElement.style.display='none'" style="width:100%; margin-top:10px; color:red; border:none; background:none;">Cerrar Panel</button>
+    </div>
+<div id="view-chat-privado" class="view">
+    <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+    <div class="chat-container" style="border-top: 5px solid var(--accent);">
+        <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
+        <p style="font-size: 0.8em; color: #666;">Inicie su consulta gratuita. Sus datos están protegidos por secreto profesional.</p>
+        
+        <div id="registro-consulta">
+            <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
+            <select id="priv-motivo" class="admin-input">
+                <option value="">¿Motivo de la detención?</option>
+                <option value="Drogas">Drogas</option>
+                <option value="Homicidio">Homicidio</option>
+                <option value="Robo/Hurto">Robo/Hurto</option>
+                <option value="Otro">Otro / No sabe</option>
+            </select>
+            <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
+        </div>
+
+        <div id="interfaz-chat-privado" style="display:none;">
+            <div id="private-messages" style="height: 250px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px;"></div>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="priv-input" style="flex:1; padding:10px;" placeholder="Escriba su consulta aquí...">
+                <button onclick="enviarMensajePrivado()" style="background:var(--accent); color:white; border:none; padding:10px; border-radius:5px;">Enviar</button>
+            </div>
+            <p style="font-size:0.7em; text-align:center; color:gray; margin-top:10px;">Si el Dr. no responde de inmediato, puede saltar al WhatsApp directo.</p>
+            <a id="btn-salto-wa" href="#" class="btn-private" style="background:#25D366; font-size:0.8em;">IR AL WHATSAPP DIRECTO</a>
+        </div>
+    </div>
+        <div id="seccion-alertas" style="margin-top:20px; background:#f8d7da; padding:10px; border-radius:10px;">
+        <h4 style="margin:0; color:#721c24;">🚨 ALERTAS EN VIVO</h4>
+        <div id="alertas-recientes" style="max-height:150px; overflow-y:auto;">
+            <p style="font-size:0.8em;">Esperando nuevas consultas...</p>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<script>
+    // Configuración Firebase (Usando tus credenciales reales)
+    const firebaseConfig = {
+        apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
+        authDomain: "privadosayuda-f01f1.firebaseapp.com",
+        databaseURL: "https://privadosayuda-f01f1-default-rtdb.firebaseio.com/",
+        projectId: "privadosayuda-f01f1",
+        storageBucket: "privadosayuda-f01f1.firebasestorage.app",
+        messagingSenderId: "137166482903",
+        appId: "1:137166482903:web:1221fa92f4ed9fa5902f92"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    firebase.auth().signInAnonymously();
+
+    // Navegación
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
+        document.getElementById(id).classList.add('active-view');
+        window.scrollTo(0,0);
+    }
+
+    // Buscador
+    function filtrar() {
+        let val = document.getElementById('busqueda').value.toLowerCase();
+        document.querySelectorAll('.card-juridica').forEach(c => {
+            c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none";
+        });
+    }
+
+    // TRUCO ADMIN MODIFICADO
+    let t = 0;
+    let esAdmin = false; 
+    document.getElementById('main-header').onclick = () => {
+        if(++t === 5) {
+            if(prompt("Clave:") === "1234") {
+                document.getElementById('admin-panel').style.display='block';
+                esAdmin = true; 
+                alert("Modo Administrador activado. Tus mensajes saldrán como Dr. Charles Reyes.");
+            }
+            t = 0;
+        }
+    };
+
+    // Chat Público MODIFICADO
+    function enviarMensajePublico() {
+        const msg = document.getElementById('chat-input').value;
+        if(msg.trim()) {
+            db.ref("chat_publico").push({ 
+                user: esAdmin ? "Dr. Charles Reyes" : "Familiar", 
+                text: msg 
+            });
+            document.getElementById('chat-input').value = "";
+        }
+    }
+
+    db.ref("chat_publico").limitToLast(10).on("child_added", s => {
+        document.getElementById("public-messages").innerHTML += `<div class="msg"><b>${s.val().user}:</b> ${s.val().text}</div>`;
+        document.getElementById("public-messages").scrollTop = 9999;
+    });
+
+    // Cargar Academia
+    db.ref("proceso_penal").on("value", s => {
+        const list = document.getElementById('lista-proceso-dinamica');
+        list.innerHTML = "";
+        s.forEach(child => {
+            const v = child.val();
+            list.innerHTML += `
+                <div class="card-juridica">
+                    <span class="tag-tutorial">TUTORIAL</span>
+                    <h3>${v.titulo}</h3>
+                    <div class="author-info">✍️ Autor: Dr. Charles Reyes | 📅 2026</div>
+                    <p style="font-size:0.9em; color:#444;">${v.texto.substring(0, 80)}...</p>
+                    <div class="card-actions">
+                        <button class="btn-action" style="background:var(--purple);" onclick="alert('${v.texto}')">LEER</button>
+                        <button class="btn-action" style="background:#f39c12;" onclick="showView('view-home')">DEBATE</button>
+                        <button class="btn-action" style="background:var(--accent);" onclick="window.open('https://wa.me/584247640846?text=Compartir:${v.titulo}')">ENVIAR</button>
+                        <button class="btn-action" style="background:#e74c3c;">PDF</button>
+                    </div>
+                </div>`;
+        });
+    });
+
+    // Guardar Funciones
+    function guardarProc() {
+        const t = document.getElementById('adm-proc-tit').value;
+        const txt = document.getElementById('adm-proc-txt').value;
+        if(t && txt) db.ref("proceso_penal").push({ titulo: t, texto: txt });
+    }
+
+    function guardarOrg() {
+        const n = document.getElementById('adm-org-nom').value;
+        const i = document.getElementById('adm-org-tel').value;
+        if(n && i) db.ref("organismos").push({ nombre: n, info: i });
+    }
+
+    db.ref("organismos").on("value", s => {
+        const l = document.getElementById('lista-organismos');
+        l.innerHTML = "";
+        s.forEach(c => {
+            const v = c.val();
+            l.innerHTML += `<div class="card-juridica" style="border-left-color:var(--primary)"><strong>${v.nombre}</strong><br><small>${v.info}</small></div>`;
+        });
+    });
+    
+    let consultaActualId = null;
+
+    function iniciarConsulta() {
+        const nombre = document.getElementById('priv-nombre').value;
+        const motivo = document.getElementById('priv-motivo').value;
+
+        if(nombre && motivo) {
+            // Creamos un ID único para esta sesión de chat
+            consultaActualId = "CONSULTA_" + Date.now();
+            
+            // Guardamos el inicio de la consulta en Firebase
+            db.ref("consultas_privadas/" + consultaActualId).set({
+                cliente: nombre,
+                motivo: motivo,
+                timestamp: Date.now(),
+                estado: "abierta"
+            });
+
+            // Cambiamos la interfaz
+            document.getElementById('registro-consulta').style.display = 'none';
+            document.getElementById('interfaz-chat-privado').style.display = 'block';
+            
+            // Configuramos el botón de WhatsApp final con los datos ya filtrados
+            document.getElementById('btn-salto-wa').href = `https://wa.me/584247640846?text=Hola%20Dr.%20Charles,%20mi%20nombre%20es%20${nombre}.%20Le%20escribo%20por%20un%20caso%20de%20${motivo}.`;
+            
+            escucharMensajesPrivados();
+        } else {
+            alert("Por favor, complete sus datos para filtrar su caso.");
+        }
+    }
+
+    // CHAT PRIVADO MODIFICADO
+    function enviarMensajePrivado() {
+        const texto = document.getElementById('priv-input').value;
+        if(texto.trim() && consultaActualId) {
+            db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
+                emisor: esAdmin ? "Dr. Charles Reyes" : "Familiar", 
+                texto: texto,
+                fecha: new Date().toLocaleTimeString()
+            });
+            document.getElementById('priv-input').value = "";
+        }
+    }
+    // LEYENDO LOS MENSAJES PRIVADOS EN TIEMPO REAL
+    let listenerPrivado = null;
+
+    function escucharMensajesPrivados() {
+        const box = document.getElementById('private-messages');
+        box.innerHTML = ""; // Limpia el historial anterior
+        
+        // Evita que se crucen los chats si atiendes a varios
+        if (listenerPrivado) { listenerPrivado.off(); }
+
+        listenerPrivado = db.ref("consultas_privadas/" + consultaActualId + "/mensajes");
+        
+        listenerPrivado.on("child_added", s => {
+            const data = s.val();
+            // Truco visual: Tus mensajes salen en verde claro, los del cliente en gris
+            const isDoc = data.emisor.includes("Dr.");
+            const bgColor = isDoc ? "#d1f5d3" : "#f1f3f9"; 
+            
+            box.innerHTML += `<div class="msg" style="background: ${bgColor}; border-radius: 8px; padding: 8px; margin-bottom: 5px;">
+                                <b>${data.emisor}:</b> ${data.texto} <br>
+                                <small style="font-size:0.7em; color:#888;">${data.fecha}</small>
+                              </div>`;
+            box.scrollTop = box.scrollHeight; // Baja el scroll automáticamente
+        });
+    }
+
+       // --- LÓGICA DE NOTIFICACIÓN SONORA ---
+    // Usamos un sonido de notificación de sistema
+    const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+
+    // Escuchador para Alertas en el Panel de Abogado
+    db.ref("consultas_privadas").on("child_added", (snapshot) => {
+        if (esAdmin) { // Solo suena si tú tienes el modo admin activo
+            sonidoAlerta.play().catch(e => console.log("Esperando interacción para sonar..."));
+            
+            // Actualizamos la lista de alertas en el panel
+            const data = snapshot.val();
+            const alertaDiv = document.getElementById('alertas-recientes');
+            const nuevaAlerta = document.createElement('div');
+            nuevaAlerta.style = "background:#fff; margin-top:5px; padding:10px; border-radius:5px; border-left:4px solid red;";
+            nuevaAlerta.innerHTML = `<strong>NUEVA CONSULTA:</strong> ${data.cliente} (${data.motivo}) <br> 
+                                     <button onclick="atenderConsulta('${snapshot.key}')" style="background:var(--primary); color:white; border:none; padding:5px; margin-top:5px; border-radius:3px;">ATENDER</button>`;
+            alertaDiv.prepend(nuevaAlerta);
+        }
+    });
+
+    // Función para que el abogado entre al chat del cliente
+    function atenderConsulta(id) {
+        consultaActualId = id;
+        document.getElementById('registro-consulta').style.display = 'none';
+        document.getElementById('interfaz-chat-privado').style.display = 'block';
+        document.getElementById('private-messages').innerHTML = ""; // Limpiar para cargar el nuevo
+        showView('view-chat-privado');
+        escucharMensajesPrivados();
+    }
+
+    // REGISTRO DEL SERVICE WORKER (PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registro => {
+            console.log('PWA lista y registrada con éxito:', registro.scope);
+          })
+          .catch(error => {
+            console.log('Falló el registro de la PWA:', error);
+          });
+      });
+    }
+
+</script>
+</body>
+</html>
