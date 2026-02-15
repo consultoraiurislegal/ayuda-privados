@@ -1,0 +1,22 @@
+{
+  "name": "Privados - Auxilio Legal",
+  "short_name": "Privados",
+  "description": "Orientación jurídica para familiares de detenidos en Táchira.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#1a237e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Scale_of_justice_2.svg/192px-Scale_of_justice_2.svg.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Scale_of_justice_2.svg/512px-Scale_of_justice_2.svg.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
