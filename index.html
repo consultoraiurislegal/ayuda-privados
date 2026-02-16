@@ -299,22 +299,9 @@ function iniciarConsulta() {
         document.getElementById('interfaz-chat-privado').style.display = 'block';
         escucharMensajesPrivados();
 
-        ref.on("value", s => {
-            const data = s.val();
-            if(data && data.abogadoNombre) {
-                document.getElementById('titulo-abogado').innerHTML = `🤝 Caso asignado a: <b>${data.abogadoNombre}</b>`;
-                const btnWa = document.getElementById('btn-salto-wa');
-                const msj = encodeURIComponent(`*CONSULTA PRIVADA*\nHola ${data.abogadoNombre}, soy ${data.cliente}. Caso: ${data.motivo}`);
-                btnWa.href = `https://wa.me/${data.abogadoTelefono.replace(/\D/g,'')}?text=${msj}`;
-                const btnVisual = btnWa.querySelector('button');
-                btnVisual.innerText = `🟢 CONTACTAR A ${data.abogadoNombre.toUpperCase()}`;
-                btnVisual.style.background = "#25D366";
-            }
-        });
+
     } else { alert("Complete los datos."); }
 }
-
-
 // 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
 // 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
 function activarMotorAdmin() {
@@ -425,6 +412,26 @@ function escucharMensajesPrivados() {
             localStorage.removeItem('mi_consulta_id'); // Borrar rastro si el admin lo eliminó
             alert("⚠️ SESIÓN FINALIZADA: El abogado cerró el caso y la información fue eliminada del servidor por seguridad.");
             location.reload();
+        } else {
+            // --- NUEVA LÓGICA: ACTUALIZAR BOTÓN WHATSAPP AQUÍ ---
+            const data = s.val();
+            // Si ya hay un abogado asignado y soy el cliente, actualizo el botón
+            if(data && data.abogadoNombre && !esAdmin) {
+                document.getElementById('titulo-abogado').innerHTML = `🤝 Caso asignado a: <b>${data.abogadoNombre}</b>`;
+                const btnWa = document.getElementById('btn-salto-wa');
+                
+                // Extraemos solo los números del teléfono por seguridad
+                const telefono = data.abogadoTelefono ? data.abogadoTelefono.replace(/\D/g,'') : ""; 
+                const msj = encodeURIComponent(`*CONSULTA PRIVADA*\nHola ${data.abogadoNombre}, soy ${data.cliente}. Caso: ${data.motivo}`);
+                
+                // Armamos el enlace
+                btnWa.href = `https://wa.me/${telefono}?text=${msj}`;
+                
+                // Cambiamos el color visual del botón
+                const btnVisual = btnWa.querySelector('button');
+                btnVisual.innerText = `🟢 CONTACTAR A ${data.abogadoNombre.toUpperCase()}`;
+                btnVisual.style.background = "#25D366";
+            }
         }
     });
 
