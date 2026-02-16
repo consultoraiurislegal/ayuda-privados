@@ -35,14 +35,6 @@
         #admin-panel { display: none; background: #fff3cd; padding: 15px; border-radius: 15px; border: 2px dashed #ffeeba; margin-top: 20px; }
         .admin-input { width: 92%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
- #private-messages {
-    position: relative;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><text x="50%" y="50%" font-size="14" fill="rgba(0,0,0,0.1)" font-family="Arial" text-anchor="middle">CHAT COMPLETAMENTE PRIVADO. Todo lo compartido aquí se autodestruirá al salir, refrescar o cerrar la ventana, garantizando total confidencialidad y secreto profesional cliente-abogado.</text></svg>');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-}
-
     </style>
 </head>
 <body>
@@ -118,9 +110,14 @@
         
         <div id="seccion-alertas" style="margin-top:20px; background:#f8d7da; padding:10px; border-radius:10px;">
             <h4 style="margin:0; color:#721c24;">🚨 ALERTAS EN VIVO</h4>
-            <div id="alertas-recientes" style="max-height:150px; overflow-y:auto;">
-                <p style="font-size:0.8em;">Esperando nuevas consultas...</p>
-            </div>
+            <div id="panel-emergencias-admin" style="display:none; background: #fff; border: 2px solid #c62828; border-radius: 12px; padding: 15px; margin: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+    <h3 style="color: #c62828; margin-top: 0; display: flex; align-items: center; gap: 10px;">
+        🚨 <span id="contador-pendientes">0</span> CONSULTAS PENDIENTES
+    </h3>
+    <div id="lista-prioritaria" style="max-height: 200px; overflow-y: auto;">
+        </div>
+</div>
+
         </div>
         <button onclick="this.parentElement.style.display='none'" style="width:100%; margin-top:10px; color:red; border:none; background:none;">Cerrar Panel</button>
     </div>
@@ -131,55 +128,47 @@
             <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
             <div id="registro-consulta">
                 <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
-                <select id="priv-motivo" class="admin-input">
-                    <option value="">¿Motivo de la detención?</option>
-                    <option value="Drogas">Drogas</option>
-                    <option value="Homicidio">Homicidio</option>
-                    <option value="Robo/Hurto">Robo/Hurto</option>
-                    <option value="Otro">Otro / No sabe</option>
-                </select>
+               <select id="priv-motivo" class="admin-input">
+    <option value="">¿Motivo de la consulta?</option>
+    <option value="Familiar recién detenido">Tengo un familiar recién detenido</option>
+    <option value="Familiar detenido hace tiempo">Tengo un familiar detenido hace tiempo</option>
+    <option value="Situación jurídica">Quiero conocer situación jurídica</option>
+    <option value="Dejar sin efecto captura">Quiero dejar sin efecto una captura</option>
+    <option value="Tramitar redenciones">Quiero tramitar redenciones de pena</option>
+    <option value="Acceder a beneficio">Quiero acceder a un beneficio</option>
+    <option value="Antecedentes penales">Quiero tramitar antecedentes penales</option>
+    <option value="No presentación UTSO/CRS">No me he presentado en tribunales ni en la UTSO ni en el CRS</option>
+    <option value="Necesito abogado audiencia">Necesito un abogado para una audiencia de presentación, preliminar o juicio</option>
+    <option value="Información de familiar">Necesito información sobre un familiar detenido</option>
+    <option value="Otros motivos">Otros motivos</option>
+</select>
+
                 <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
             </div>
 
             <div id="interfaz-chat-privado" style="display:none;">
 <div id="private-messages" style="height: 300px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px; position: relative;">
-    <div id="fondo-advertencia" style="padding: 20px; text-align: center; color: #777; font-size: 0.85em; pointer-events: none;">
-        <p>⚠️ <b>ZONA DE ALTA CONFIDENCIALIDAD</b></p>
-        <p>Use el botón <b>rojo</b> para destruir toda la información (mensajes, audios y archivos) de forma permanente.</p>
-        <p>Al cerrar o refrescar esta ventana, los datos se borrarán automáticamente para garantizar el secreto profesional.</p>
-        <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
-        <p style="color: var(--accent); font-weight: bold;">Para asesoría con historial persistente, use el botón de WhatsApp.</p>
+  
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px;">
+    <textarea id="priv-input" style="width: 95%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;" placeholder="Escriba su mensaje confidencial aquí..."></textarea>
+    
+    <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+        <input type="file" id="priv-file-upload" style="display: none;" onchange="procesarArchivoPrivado(event)">
+        <label for="priv-file-upload" style="background: #e0e0e0; padding: 10px; border-radius: 8px; cursor: pointer; flex: 0.5; text-align: center;">📎</label>
+        <button id="btn-mic-privado" style="background: #e0e0e0; border: none; padding: 10px; border-radius: 8px; flex: 0.5; cursor: pointer;" onclick="toggleMicPrivado()">🎤</button>
+        <button onclick="enviarMensajeTextoPrivado()" style="background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; flex: 2; font-weight: bold;">ENVIAR MENSAJE</button>
     </div>
 </div>
 
-    
-<div style="display: flex; flex-direction: column; gap: 10px;">
-    <textarea id="priv-input" style="width: 95%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inheri0t;" placeholder="Escriba su mensaje confidencial aquí..."></textarea>
-    
-   <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
-    <input type="file" id="priv-file-upload" style="display: none;" onchange="procesarArchivoPrivado(event)">
-    
-    <label for="priv-file-upload" style="background: #e0e0e0; padding: 10px; border-radius: 8px; cursor: pointer; flex: 0.5; text-align: center;">📎</label>
-    
-    <button id="btn-mic-privado" style="background: #e0e0e0; border: none; padding: 10px; border-radius: 8px; flex: 0.5; cursor: pointer;" onclick="toggleMicPrivado()">🎤</button>
-    
-    <button onclick="enviarMensajeTextoPrivado()" style="background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; flex: 2; font-weight: bold;">ENVIAR MENSAJE</button>
-</div>
-
-
-</div>
 <div id="info-abogado-asignado" style="margin-top: 10px;">
     <p id="titulo-abogado" style="font-size: 0.9em; text-align: center; color: #555;"></p>
     <a id="btn-salto-wa" href="javascript:void(0)" onclick="if(this.href.includes('javascript')) alert('Esperando a que un abogado acepte su caso para habilitar WhatsApp...')" target="_blank" style="text-decoration: none;">
-    <button style="background: #ccc; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-        ⌛ ESPERANDO ASIGNACIÓN...
-    </button>
-</a>
-
+        <button style="background: #ccc; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            ⌛ ESPERANDO ASIGNACIÓN...
+        </button>
+    </a>
 </div>
-
-
-    <button onclick="destruirChatPrivado()" style="background:#c62828; color:white; border:none; padding:12px; border-radius:8px; margin-top:10px; width:100%; font-weight:bold;">🔥 DESTRUIR CHAT Y SALIR</button>
 </div>
 
         </div>
@@ -187,296 +176,248 @@
 </div>
 
 <script>
-    // BOMBA DE CACHÉ PWA
-    if ('caches' in window) { caches.keys().then(names => { names.forEach(name => { caches.delete(name); }); }); }
-
-    // REGISTRO DEL SERVICE WORKER (Faltaba en el código anterior)
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
+// 1. GESTIÓN DE CACHÉ Y SERVICE WORKER
+if ('caches' in window) { 
+    caches.keys().then(names => { names.forEach(name => { caches.delete(name); }); }); 
+}
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(error => { console.log('SW falló:', error); });
-      });
-    }
-
-    // Configuración Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
-        authDomain: "privadosayuda-f01f1.firebaseapp.com",
-        databaseURL: "https://privadosayuda-f01f1-default-rtdb.firebaseio.com/",
-        projectId: "privadosayuda-f01f1",
-        storageBucket: "privadosayuda-f01f1.firebasestorage.app",
-        messagingSenderId: "137166482903",
-        appId: "1:137166482903:web:1221fa92f4ed9fa5902f92"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    firebase.auth().signInAnonymously();
-
-    function showView(id) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
-        document.getElementById(id).classList.add('active-view');
-        window.scrollTo(0,0);
-    }
-
-    // --- SISTEMA MULTI-ADMINISTRADOR DINÁMICO ---
-    let t = 0; let esAdmin = false; 
-    let nombreAdmin = ""; let telefonoAdmin = "";
-
-    // Cargar la lista de abogados desde Firebase
-    let equipoLegalDinamico = {};
-    db.ref("equipo_legal").on("value", s => {
-        if(s.exists()) {
-            equipoLegalDinamico = s.val();
-        } else {
-            // Clave fundadora obligatoria
-            equipoLegalDinamico = { "1234": { nombre: "Dr. Charles Reyes", telefono: "584247640846" } };
-        }
     });
+}
 
-    // 5 Toques para abrir el panel y cargar el módulo de colegas
-    document.getElementById('main-header').onclick = () => {
-        if(++t === 5) {
-            let clave = prompt("Ingrese clave de acceso profesional (PIN):");
-            if(equipoLegalDinamico[clave]) {
-                document.getElementById('admin-panel').style.display='block';
-                esAdmin = true; 
-                nombreAdmin = equipoLegalDinamico[clave].nombre; 
-                telefonoAdmin = equipoLegalDinamico[clave].telefono;
-                alert("Despacho abierto.\nSesión iniciada como: " + nombreAdmin);
-            } else if (clave) {
-                alert("Clave denegada. Colega no registrado.");
-            }
-            t = 0;
-        }
-    };
+// 2. CONFIGURACIÓN FIREBASE
+const firebaseConfig = {
+    apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
+    authDomain: "privadosayuda-f01f1.firebaseapp.com",
+    databaseURL: "https://privadosayuda-f01f1-default-rtdb.firebaseio.com/",
+    projectId: "privadosayuda-f01f1",
+    storageBucket: "privadosayuda-f01f1.firebasestorage.app",
+    messagingSenderId: "137166482903",
+    appId: "1:137166482903:web:1221fa92f4ed9fa5902f92"
+};
 
-    function guardarAbogado() {
-        const pin = document.getElementById('adm-abg-pin').value;
-        const nom = document.getElementById('adm-abg-nom').value;
-        const tel = document.getElementById('adm-abg-tel').value;
-        if(pin && nom && tel) {
-            db.ref("equipo_legal/" + pin).set({ nombre: nom, telefono: tel });
-            alert("Colega " + nom + " registrado con éxito en el sistema.");
-            document.getElementById('adm-abg-pin').value = "";
-            document.getElementById('adm-abg-nom').value = "";
-            document.getElementById('adm-abg-tel').value = "";
-        } else {
-            alert("Por favor llene el PIN, el Nombre y el Teléfono del colega.");
-        }
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+const db = firebase.database();
+firebase.auth().signInAnonymously();
+
+// 3. VARIABLES DE ESTADO GLOBAL
+let esAdmin = false;
+let nombreAdmin = "";
+let telefonoAdmin = "";
+let consultaActualId = null;
+let listenerPrivado = null;
+let mediaRecorder;
+let audioChunks = [];
+let grabando = false;
+const alarmaAdmin = new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3');
+alarmaAdmin.loop = true;
+
+// 4. NAVEGACIÓN (La función showView que usan tus botones)
+function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
+    document.getElementById(id).classList.add('active-view');
+    window.scrollTo(0,0);
+}
+
+// 5. SISTEMA MULTI-ADMINISTRADOR
+let t = 0;
+let equipoLegalDinamico = {};
+
+// Recuperar sesión si ya existía (Persistencia básica)
+const adminGuardado = localStorage.getItem('admin_activo');
+if(adminGuardado) {
+    const datos = JSON.parse(adminGuardado);
+    esAdmin = true;
+    nombreAdmin = datos.nombre;
+    telefonoAdmin = datos.telefono;
+    document.getElementById('admin-panel').style.display = 'block';
+    // ESTO ES LO MÁS IMPORTANTE: Reactivar el motor siempre
+    setTimeout(activarMotorAdmin, 2000); 
+}
+
+db.ref("equipo_legal").on("value", s => {
+    equipoLegalDinamico = s.exists() ? s.val() : { "1234": { nombre: "Dr. Charles Reyes", telefono: "584247640846" } };
+});
+
+document.getElementById('main-header').onclick = () => {
+    if(++t === 5) {
+        let clave = prompt("Ingrese PIN profesional:");
+        if(equipoLegalDinamico[clave]) {
+            esAdmin = true;
+            nombreAdmin = equipoLegalDinamico[clave].nombre;
+            telefonoAdmin = equipoLegalDinamico[clave].telefono;
+            
+            // Guardar en memoria del navegador para que no se pierda al refrescar
+            localStorage.setItem('admin_activo', JSON.stringify(equipoLegalDinamico[clave]));
+            
+            document.getElementById('admin-panel').style.display='block';
+            activarMotorAdmin(); 
+            alert("Sesión iniciada: " + nombreAdmin);
+        } else if(clave) { alert("PIN incorrecto."); }
+        t = 0;
     }
+};
 
-    // --- LÓGICA DE CHAT PRIVADO ---
-    let consultaActualId = null;
-    let listenerPrivado = null;
 
+// 6. LÓGICA DE CONSULTA (CLIENTE)
 function iniciarConsulta() {
     const nombre = document.getElementById('priv-nombre').value;
     const motivo = document.getElementById('priv-motivo').value;
-
     if(nombre && motivo) {
         consultaActualId = "CONSULTA_" + Date.now();
-        const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
-
-        refConsulta.onDisconnect().remove(); 
-
-        refConsulta.set({ 
-            cliente: nombre, 
-            motivo: motivo, 
-            timestamp: Date.now(), 
-            estado: "abierta" 
-        });
+        const ref = db.ref("consultas_privadas/" + consultaActualId);
+        ref.onDisconnect().remove();
+        ref.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "pendiente" });
 
         document.getElementById('registro-consulta').style.display = 'none';
         document.getElementById('interfaz-chat-privado').style.display = 'block';
-        
-        // ESCUCHADOR DE ASIGNACIÓN
-        refConsulta.on("value", s => {
+        escucharMensajesPrivados();
+
+        ref.on("value", s => {
             const data = s.val();
-            if(data && data.abogadoNombre && data.abogadoTelefono) {
+            if(data && data.abogadoNombre) {
                 document.getElementById('titulo-abogado').innerHTML = `🤝 Caso asignado a: <b>${data.abogadoNombre}</b>`;
-                
-                const btnWaLink = document.getElementById('btn-salto-wa');
-                
-                // Limpiar el teléfono (quitar espacios o carácteres especiales si los hay)
-                const telLimpio = data.abogadoTelefono.replace(/\D/g,'');
-                
-                // Mensaje predeterminado profesional
-                const mensajeWa = encodeURIComponent(
-                    `*CONSULTA LEGAL PRIVADA*\n\n` +
-                    `Hola, ${data.abogadoNombre}. Solicito una consulta con historial persistente.\n` +
-                    `*Cliente:* ${data.cliente}\n` +
-                    `*Caso:* ${data.motivo}\n\n` +
-                    `Vengo de la App Privados.`
-                );
-                
-                // Actualizamos el atributo href
-                btnWaLink.href = `https://wa.me/${telLimpio}?text=${mensajeWa}`;
-                
-                // Actualizamos el texto del botón
-                const btnVisual = btnWaLink.querySelector('button');
+                const btnWa = document.getElementById('btn-salto-wa');
+                const msj = encodeURIComponent(`*CONSULTA PRIVADA*\nHola ${data.abogadoNombre}, soy ${data.cliente}. Caso: ${data.motivo}`);
+                btnWa.href = `https://wa.me/${data.abogadoTelefono.replace(/\D/g,'')}?text=${msj}`;
+                const btnVisual = btnWa.querySelector('button');
                 btnVisual.innerText = `🟢 CONTACTAR A ${data.abogadoNombre.toUpperCase()}`;
                 btnVisual.style.background = "#25D366";
             }
         });
-        
-        escucharMensajesPrivados();
-    } else {
-        alert("Por favor, complete sus datos.");
-    }
+    } else { alert("Complete los datos."); }
 }
 
-
-
-    function enviarMensajeTextoPrivado() {
-        const inputStr = document.getElementById('priv-input');
-        const texto = inputStr.value;
-        
-        if(texto.trim() !== "" && consultaActualId !== null) {
-            db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
-                emisor: esAdmin ? nombreAdmin : "Familiar", 
-                texto: texto,
-                fecha: new Date().toLocaleTimeString()
-            }).then(() => { inputStr.value = ""; }).catch(e => alert("Error Firebase: " + e.message));
-        }
-    }
-
-function escucharMensajesPrivados() {
-    const box = document.getElementById('private-messages');
-    // Mantenemos el fondo si no hay mensajes aún
-    if (listenerPrivado) { listenerPrivado.off(); }
-    listenerPrivado = db.ref("consultas_privadas/" + consultaActualId + "/mensajes");
+// 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
+// 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
+function activarMotorAdmin() {
+    console.log("Motor de alertas activado..."); 
     
-    listenerPrivado.on("child_added", s => {
-        const data = s.val();
-        if(!data) return;
-
-        // OCULTAR ADVERTENCIA: Si llega un mensaje, quitamos el fondo informativo
-        const fondo = document.getElementById('fondo-advertencia');
-        if(fondo) fondo.style.display = 'none';
-
-        const isDoc = data.emisor.includes("Dr.") || data.emisor.includes("Abg.");
-        const bgColor = isDoc ? "#d1f5d3" : "#f1f3f9"; 
+    // Escuchamos los cambios en el nodo de consultas
+    db.ref("consultas_privadas").on("value", snapshot => {
+        // Si el usuario no es admin, no procesamos nada
+        if (!esAdmin) return;
         
-        let contenidoHtml = "";
-        if (!data.tipo || data.tipo === 'texto') {
-            contenidoHtml = data.texto || data.contenido;
-        } else if (data.tipo === 'imagen') {
-            contenidoHtml = `<img src="${data.contenido}" style="max-width:100%; border-radius:8px;">`;
-        } else if (data.tipo === 'audio') {
-            contenidoHtml = `<audio controls src="${data.contenido}" style="width:100%; height:30px;"></audio>`;
-        } else if (data.tipo === 'archivo') {
-            contenidoHtml = `📄 <a href="${data.contenido}" download="${data.nombreArchivo}">Descargar ${data.nombreArchivo}</a>`;
-        }
+        const consultas = snapshot.val();
+        const listaDiv = document.getElementById('lista-prioritaria');
+        const panelAlerta = document.getElementById('panel-emergencias-admin');
+        const seccionContenedora = document.getElementById('seccion-alertas');
         
-        box.innerHTML += `<div class="msg" style="background: ${bgColor}; border-radius: 8px; padding: 10px; margin-bottom: 5px;">
-                            <b>${data.emisor}:</b><br>${contenidoHtml}<br>
-                            <small style="font-size:0.7em; color:#888;">${data.fecha || ''}</small>
-                          </div>`;
-        box.scrollTop = box.scrollHeight; 
-    });
-}
+        let pendientes = 0;
 
-
-
-    function destruirChatPrivado() {
-        if(consultaActualId) {
-            db.ref("consultas_privadas/" + consultaActualId).remove()
-              .then(() => {
-                  alert("Chat destruido y borrado de la base de datos por seguridad.");
-                  location.reload(); 
-              });
+        // Si no hay ninguna consulta en la base de datos
+        if (!consultas) {
+            seccionContenedora.style.display = 'none';
+            panelAlerta.style.display = 'none';
+            listaDiv.innerHTML = "<p style='text-align:center;'>Bandeja vacía</p>";
+            alarmaAdmin.pause();
+            return;
         }
-    }
 
-    // --- ALARMA Y ADJUDICACIÓN DE CASOS ---
-    const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+        // Siempre mostramos la sección contenedora si llegamos aquí
+        seccionContenedora.style.display = 'block';
+        
+        // Botón de limpieza masiva al inicio de la lista
+        listaDiv.innerHTML = `
+            <button onclick="eliminarTodoSeguro()" style="width:100%; background:#333; color:white; border:none; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer;">
+                🗑️ ELIMINAR TODAS LAS CONSULTAS
+            </button>`;
 
-    db.ref("consultas_privadas").on("child_added", (snapshot) => {
-        if (esAdmin) { 
-            const data = snapshot.val();
-            if(data && data.estado === "abierta") {
-                sonidoAlerta.play().catch(e => console.log("Sonido en espera..."));
-                const alertaDiv = document.getElementById('alertas-recientes');
-                const nuevaAlerta = document.createElement('div');
-                nuevaAlerta.id = "alerta-" + snapshot.key;
-                nuevaAlerta.style = "background:#fff; margin-top:5px; padding:10px; border-radius:5px; border-left:4px solid red;";
-                nuevaAlerta.innerHTML = `<strong>NUEVA CONSULTA:</strong> ${data.cliente} (${data.motivo}) <br> 
-                                         <button onclick="atenderConsulta('${snapshot.key}')" style="background:var(--primary); color:white; border:none; padding:5px; margin-top:5px; border-radius:3px; font-weight:bold;">ATENDER CASO</button>`;
-                alertaDiv.prepend(nuevaAlerta);
+        // Recorremos las consultas para dibujar las tarjetas
+        for (let id in consultas) {
+            const c = consultas[id];
+            
+            // Filtramos solo las que están en curso
+            if (c.estado === "pendiente" || c.estado === "atendiendo") {
+                if (c.estado === "pendiente") pendientes++;
+                
+                const colorFondo = c.estado === "atendiendo" ? "#e3f2fd" : "#fff";
+                const textoBoton = c.estado === "atendiendo" ? "ABRIR CHAT" : "ATENDER";
+
+                listaDiv.innerHTML += `
+                    <div style="background:${colorFondo}; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <b>👤 ${c.cliente}</b><br>
+                            <small>⚖️ ${c.motivo}</small>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="atenderConsulta('${id}')" style="background:#2e7d32; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">
+                                ${textoBoton}
+                            </button>
+                            <button onclick="borrarCasoSeguro('${id}')" style="background:#c62828; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>`;
             }
         }
-    });
 
-    db.ref("consultas_privadas").on("child_changed", (snapshot) => {
-        const data = snapshot.val();
-        if(data && data.estado === "atendida") {
-            const alertaABorrar = document.getElementById("alerta-" + snapshot.key);
-            if(alertaABorrar) alertaABorrar.remove();
+        // Actualizamos el contador visual
+        document.getElementById('contador-pendientes').innerText = pendientes;
+
+        // Si hay casos nuevos, mostramos el panel y activamos alarma
+        if (pendientes > 0) {
+            panelAlerta.style.display = 'block';
+            alarmaAdmin.play().catch(e => console.log("Esperando interacción para audio"));
+        } else {
+            // Si hay casos pero todos están siendo "atendidos", el panel sigue visible pero sin alarma
+            panelAlerta.style.display = 'block';
+            alarmaAdmin.pause();
+            alarmaAdmin.currentTime = 0;
         }
     });
-
-    function atenderConsulta(id) {
-        consultaActualId = id;
-        db.ref("consultas_privadas/" + id).update({
-            abogadoNombre: nombreAdmin,
-            abogadoTelefono: telefonoAdmin,
-            estado: "atendida"
-        });
-
-        document.getElementById('registro-consulta').style.display = 'none';
-        document.getElementById('interfaz-chat-privado').style.display = 'block';
-        showView('view-chat-privado');
-        escucharMensajesPrivados();
-    }
-
-    // --- CHAT PÚBLICO (Limpieza 24h) ---
-    function enviarMensajePublico() {
-        const msg = document.getElementById('chat-input').value;
-        if(msg.trim()) { 
-            db.ref("chat_publico").push({ user: esAdmin ? nombreAdmin : "Familiar", text: msg, timestamp: Date.now() }); 
-            document.getElementById('chat-input').value = ""; 
-        }
-    }
-    db.ref("chat_publico").limitToLast(15).on("child_added", s => {
-        const data = s.val();
-        const vidaUtil = 24 * 60 * 60 * 1000; 
-        if (data.timestamp && (Date.now() - data.timestamp > vidaUtil)) {
-            db.ref("chat_publico/" + s.key).remove();
-            return; 
-        }
-        const box = document.getElementById("public-messages");
-        box.innerHTML += `<div class="msg"><b>${data.user}:</b> ${data.text}</div>`;
-        box.scrollTop = box.scrollHeight;
-    });
-
-    // Funciones Secundarias
-    function filtrar() { let val = document.getElementById('busqueda').value.toLowerCase(); document.querySelectorAll('.card-juridica').forEach(c => c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none"); }
-    function guardarProc() { const t = document.getElementById('adm-proc-tit').value; const txt = document.getElementById('adm-proc-txt').value; if(t && txt) db.ref("proceso_penal").push({ titulo: t, texto: txt }); }
-    function guardarOrg() { const n = document.getElementById('adm-org-nom').value; const i = document.getElementById('adm-org-tel').value; if(n && i) db.ref("organismos").push({ nombre: n, info: i }); }
-    
-    // --- FUNCIONES PARA AUDIO Y ARCHIVOS ---
-let mediaRecorder;
-let audioChunks = [];
-let grabando = false;
-
-// Procesar Archivos e Imágenes
-function procesarArchivoPrivado(event) {
-    const archivo = event.target.files[0];
-    if (!archivo) return;
-    const lector = new FileReader();
-    lector.onload = function(e) {
-        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
-            emisor: esAdmin ? nombreAdmin : "Familiar",
-            tipo: archivo.type.startsWith('image/') ? "imagen" : "archivo",
-            contenido: e.target.result,
-            nombreArchivo: archivo.name,
-            fecha: new Date().toLocaleTimeString()
-        });
-    };
-    lector.readAsDataURL(archivo);
 }
 
-// Control del Micrófono
+
+function atenderConsulta(id) {
+    db.ref("consultas_privadas/" + id).update({
+        estado: "atendiendo",
+        abogadoNombre: nombreAdmin,
+        abogadoTelefono: telefonoAdmin
+    });
+    consultaActualId = id;
+    showView('view-chat-privado');
+    document.getElementById('registro-consulta').style.display = 'none';
+    document.getElementById('interfaz-chat-privado').style.display = 'block';
+    escucharMensajesPrivados();
+}
+
+// 8. CHAT PRIVADO Y MULTIMEDIA
+function escucharMensajesPrivados() {
+    const box = document.getElementById('private-messages');
+    if (listenerPrivado) listenerPrivado.off();
+    listenerPrivado = db.ref("consultas_privadas/" + consultaActualId + "/mensajes");
+    listenerPrivado.on("child_added", s => {
+        const data = s.val();
+        const esMio = (esAdmin && data.emisor === nombreAdmin) || (!esAdmin && data.emisor === "Familiar");
+        const bg = data.emisor.includes("Dr") || data.emisor.includes("Abg") ? "#d1f5d3" : "#f1f3f9";
+        
+        let contenido = "";
+        if(data.tipo === 'imagen') contenido = `<img src="${data.contenido}" style="max-width:100%; border-radius:8px;">`;
+        else if(data.tipo === 'audio') contenido = `<audio controls src="${data.contenido}" style="width:100%"></audio>`;
+        else if(data.tipo === 'archivo') contenido = `📄 <a href="${data.contenido}" download="${data.nombreArchivo}">Descargar archivo</a>`;
+        else contenido = data.texto;
+
+        box.innerHTML += `<div class="msg" style="background:${bg}; margin-bottom:8px; padding:10px; border-radius:8px;">
+                            <b>${data.emisor}:</b><br>${contenido}</div>`;
+        box.scrollTop = box.scrollHeight;
+    });
+}
+
+function enviarMensajeTextoPrivado() {
+    const input = document.getElementById('priv-input');
+    if(input.value.trim() && consultaActualId) {
+        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
+            emisor: esAdmin ? nombreAdmin : "Familiar",
+            texto: input.value,
+            tipo: 'texto',
+            fecha: new Date().toLocaleTimeString()
+        });
+        input.value = "";
+    }
+}
+
 async function toggleMicPrivado() {
     const btn = document.getElementById('btn-mic-privado');
     if (!grabando) {
@@ -486,24 +427,87 @@ async function toggleMicPrivado() {
             audioChunks = [];
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.onstop = () => {
-                const lector = new FileReader();
-                lector.onload = (e) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
                     db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
                         emisor: esAdmin ? nombreAdmin : "Familiar",
                         tipo: "audio", contenido: e.target.result,
                         fecha: new Date().toLocaleTimeString()
                     });
                 };
-                lector.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
+                reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
             };
-            mediaRecorder.start();
-            grabando = true;
-            btn.innerHTML = "⏹️ Detener"; btn.style.background = "#ffcdd2";
-        } catch (err) { alert("Acceso al micrófono denegado."); }
-    } else {
-        mediaRecorder.stop(); grabando = false;
-        btn.innerHTML = "🎤 Grabar"; btn.style.background = "#e0e0e0";
+            mediaRecorder.start(); grabando = true;
+            btn.innerHTML = "⏹️"; btn.style.background = "#ffcdd2";
+        } catch (err) { alert("Micrófono no accesible."); }
+    } else { mediaRecorder.stop(); grabando = false; btn.innerHTML = "🎤"; btn.style.background = "#e0e0e0"; }
+}
+
+function procesarArchivoPrivado(event) {
+    const file = event.target.files[0];
+    if (!file || !consultaActualId) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
+            emisor: esAdmin ? nombreAdmin : "Familiar",
+            tipo: file.type.startsWith('image/') ? "imagen" : "archivo",
+            contenido: e.target.result,
+            nombreArchivo: file.name,
+            fecha: new Date().toLocaleTimeString()
+        });
+    };
+    reader.readAsDataURL(file);
+}
+// 9. FUNCIONES DE ACADEMIA, ORGANISMOS Y CHAT PÚBLICO (Tus funciones originales)
+function filtrar() { 
+    let val = document.getElementById('busqueda').value.toLowerCase(); 
+    document.querySelectorAll('.card-juridica').forEach(c => c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none"); 
+}
+function guardarProc() { 
+    const t = document.getElementById('adm-proc-tit').value; 
+    const txt = document.getElementById('adm-proc-txt').value; 
+    if(t && txt) db.ref("proceso_penal").push({ titulo: t, texto: txt }).then(() => alert("Publicado")); 
+}
+function guardarOrg() { 
+    const n = document.getElementById('adm-org-nom').value; 
+    const i = document.getElementById('adm-org-tel').value; 
+    if(n && i) db.ref("organismos").push({ nombre: n, info: i }).then(() => alert("Guardado")); 
+}
+function guardarAbogado() {
+    const pin = document.getElementById('adm-abg-pin').value;
+    const nom = document.getElementById('adm-abg-nom').value;
+    const tel = document.getElementById('adm-abg-tel').value;
+    if(pin && nom && tel) {
+        db.ref("equipo_legal/" + pin).set({ nombre: nom, telefono: tel });
+        alert("Colega registrado.");
     }
+}
+function enviarMensajePublico() {
+    const msg = document.getElementById('chat-input').value;
+    if(msg.trim()) { 
+        db.ref("chat_publico").push({ user: esAdmin ? nombreAdmin : "Familiar", text: msg, timestamp: Date.now() }); 
+        document.getElementById('chat-input').value = ""; 
+    }
+}
+
+// Carga de datos iniciales
+db.ref("chat_publico").limitToLast(15).on("child_added", s => {
+    const data = s.val();
+    const box = document.getElementById("public-messages");
+    box.innerHTML += `<div class="msg"><b>${data.user}:</b> ${data.text}</div>`;
+    box.scrollTop = box.scrollHeight;
+});
+// Función para eliminar TODO el nodo de consultas privadas
+function eliminarTodoSeguro() {
+    if (confirm("🚨 ¿ESTÁ SEGURO?\nEsta acción destruirá ABSOLUTAMENTE TODAS las consultas, chats y archivos del servidor para garantizar la confidencialidad total.")) {
+        db.ref("consultas_privadas").remove()
+        .then(() => alert("Base de datos de consultas limpiada con éxito."));
+    }
+}
+
+// Función para borrar un caso específico
+function borrarCasoSeguro(id) {
+    db.ref("consultas_privadas/" + id).remove();
 }
 
 </script>
