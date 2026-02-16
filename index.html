@@ -13,7 +13,23 @@
     <style>
         :root { --primary: #1a237e; --secondary: #c62828; --accent: #25D366; --bg: #f0f2f5; --white: #ffffff; --purple: #9c27b0; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 20px; }
-        header { background: var(--primary); color: var(--white); padding: 25px 15px; text-align: center; border-radius: 0 0 25px 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        header {
+    background: linear-gradient(rgba(26, 35, 126, 0.85), rgba(26, 35, 126, 0.6)), 
+                url('https://media.istockphoto.com/id/1326454581/es/vector/manos-rompiendo-la-cadena-grillet-esposas-esposas.jpg?s=612x612&w=is&k=20&c=2amyvyI-j8B-ho1sNzQ1eVVbN2i2oTQ-6dpxcGGYM8w=');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    color: white;
+    /* REDUJIMOS EL ESPACIO DE 50px A 25px */
+    padding: 25px 20px; 
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+
         header h1 { margin: 0; font-size: 1.8em; letter-spacing: 2px; }
         header p { font-size: 0.85em; margin-top: 10px; line-height: 1.4; opacity: 0.9; }
         .container { padding: 15px; }
@@ -35,31 +51,70 @@
         #admin-panel { display: none; background: #fff3cd; padding: 15px; border-radius: 15px; border: 2px dashed #ffeeba; margin-top: 20px; }
         .admin-input { width: 92%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                /* Animación de latido para el botón principal */
+        @keyframes latido {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            50% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(37, 211, 102, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+        .btn-latido {
+            animation: latido 2s infinite ease-in-out;
+        }
+
     </style>
 </head>
 <body>
 
 <header id="main-header">
-    <h1>PRIVADOS</h1>
-    <p>Orientación jurídica gratuita para familiares de detenidos en Táchira.</p>
+    <h1>SUEÑOS DE LIBERTAD</h1>
+    <p>Orientación jurídica gratuita para familiares de detenidos en toda Venezuela.</p>
 </header>
 
 <div class="container">
     <div id="view-home" class="view active-view">
         <div class="chat-container">
-            <h4 style="margin:0; color: var(--secondary)">💬 Chat Público de Apoyo</h4>
-            <div id="public-messages" style="height: 150px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px;"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="chat-input" style="flex:1; padding:10px;" placeholder="Escribe tu duda...">
-                <button onclick="enviarMensajePublico()" style="background:var(--primary); color:white; border:none; padding:10px; border-radius:5px;">Enviar</button>
-            </div>
+    <div style="background: #e3f2fd; border-left: 4px solid #1a237e; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+        <h3 style="margin: 0 0 5px 0; color: #1a237e; font-size: 1.1em; display: flex; align-items: center; gap: 5px;">
+            💬 Sala de Apoyo Mutuo (Pública)
+        </h3>
+        <p style="margin: 0; color: #444; font-size: 0.85em; line-height: 1.4; text-align: justify;">
+            Este es un espacio comunitario para conversar con otras familias y resolver dudas jurídicas <b>generales</b>. 
+            <br><br>
+            <span style="color: #c62828; font-weight: bold;">⚠️ Importante:</span> Al ser un chat grupal, <b>no comparta nombres reales, números de expediente ni datos personales</b>. Para atención confidencial, use la "Consulta Privada" más abajo.
+        </p>
+    </div>
+
+    <div id="public-messages" style="height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px; background: #fafafa; margin-bottom: 10px;"></div>
+    
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="text" id="chat-input" style="width: 93%; padding:10px; border: 1px solid #ccc; border-radius: 5px;" placeholder="Escribe un mensaje al grupo...">
+        
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="file" id="pub-file-upload" style="display: none;" onchange="procesarArchivoPublico(event)" accept="image/*">
+            <label for="pub-file-upload" style="background: #e0e0e0; padding: 10px; border-radius: 8px; cursor: pointer; flex: 0.5; text-align: center;">📎</label>
+            <button id="btn-mic-publico" style="background: #e0e0e0; border: none; padding: 10px; border-radius: 8px; flex: 0.5; cursor: pointer;" onclick="toggleMicPublico()">🎤</button>
+            <button onclick="enviarMensajePublico()" style="background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; flex: 2; font-weight: bold;">ENVIAR</button>
+        </div>
+    </div>
+</div>
+
+
+                <div class="hook-card" style="position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(26,35,126,0.4);">
+            <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%); pointer-events: none;"></div>
+            
+            <h3 style="margin-top: 0; font-size: 1.3em; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                🛡️ Análisis de Caso: Privado y Gratuito
+            </h3>
+            
+            <p style="font-size: 0.95em; line-height: 1.5; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+                No enfrente este proceso judicial a ciegas. Obtenga una evaluación experta sobre el estado de su familiar, conozca las opciones reales y despeje sus dudas en un espacio estrictamente confidencial.
+            </p>
+            
+            <button onclick="showView('view-chat-privado')" class="btn-private btn-latido" style="font-size: 1.05em; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                🔒 HABLAR CON UN ABOGADO AHORA
+            </button>
         </div>
 
-        <div class="hook-card">
-            <h3>¿Consulta Privada y Gratuita?</h3>
-            <p>Obtenga una segunda opinión confidencial sobre su caso.</p>
-            <button onclick="showView('view-chat-privado')" class="btn-private">SOLICITAR SEGUNDA OPINIÓN</button>
-        </div>
 
         <div class="nav-grid">
             <div class="nav-item" onclick="showView('view-org')">🏛️ Organismos</div>
@@ -119,7 +174,13 @@
 </div>
 
         </div>
-        <button onclick="this.parentElement.style.display='none'" style="width:100%; margin-top:10px; color:red; border:none; background:none;">Cerrar Panel</button>
+                <button onclick="cerrarSesionAdmin()" style="width:100%; margin-top:15px; background:#c62828; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+            🚪 CERRAR SESIÓN (Volver a modo familiar)
+        </button>
+        <button onclick="this.parentElement.style.display='none'" style="width:100%; margin-top:10px; color:#555; border:none; background:none; text-decoration:underline; cursor:pointer;">
+            Solo ocultar panel temporalmente
+       </button>
+
     </div>
 
     <div id="view-chat-privado" class="view">
@@ -149,7 +210,7 @@
         🔒 Garantía de Confidencialidad Absoluta
     </p>
     <p style="margin: 0; color: #555; font-size: 0.8em; line-height: 1.5; text-align: justify;">
-        Al iniciar, entrará a un canal completamente confidencial. En estricto cumplimiento del <b>Secreto Profesional</b>, al cerrar la sesión toda la conversación, audios, imágenes y documentos se <b>destruirán automáticamente</b> de la base de datos y de su celular, sin dejar rastro alguno.
+        Al iniciar, entrará a un canal completamente confidencial. En estricto cumplimiento del <b>Secreto Profesional</b>, cuando el abogado cierre la sesión toda la conversación, audios, imágenes y documentos se <b>destruirán automáticamente</b> de la base de datos y de su celular, sin dejar rastro alguno.
     </p>
 </div>
 
@@ -554,21 +615,27 @@ function guardarAbogado() {
         alert("Colega registrado.");
     }
 }
-function enviarMensajePublico() {
-    const msg = document.getElementById('chat-input').value;
-    if(msg.trim()) { 
-        db.ref("chat_publico").push({ user: esAdmin ? nombreAdmin : "Familiar", text: msg, timestamp: Date.now() }); 
-        document.getElementById('chat-input').value = ""; 
+
+// --- FUNCIÓN PARA CERRAR SESIÓN DE ADMIN ---
+function cerrarSesionAdmin() {
+    if (confirm("¿Está seguro que desea cerrar la sesión de abogado? La aplicación volverá a la vista de usuario normal.")) {
+        // 1. Borramos la memoria del celular
+        localStorage.removeItem('admin_activo');
+        
+        // 2. Apagamos alarmas si estaban sonando
+        alarmaAdmin.pause();
+        alarmaAdmin.currentTime = 0;
+        
+        // 3. Reiniciamos variables por seguridad
+        esAdmin = false;
+        nombreAdmin = "";
+        telefonoAdmin = "";
+        
+        // 4. Recargamos la página para limpiar todo el sistema y volver a modo familiar
+        location.reload(); 
     }
 }
 
-// Carga de datos iniciales
-db.ref("chat_publico").limitToLast(15).on("child_added", s => {
-    const data = s.val();
-    const box = document.getElementById("public-messages");
-    box.innerHTML += `<div class="msg"><b>${data.user}:</b> ${data.text}</div>`;
-    box.scrollTop = box.scrollHeight;
-});
 // Función para eliminar TODO el nodo de consultas privadas
 function eliminarTodoSeguro() {
     if (confirm("🚨 ¿ESTÁ SEGURO?\nEsta acción destruirá ABSOLUTAMENTE TODAS las consultas, chats y archivos del servidor para garantizar la confidencialidad total.")) {
@@ -581,6 +648,141 @@ function eliminarTodoSeguro() {
 function borrarCasoSeguro(id) {
     db.ref("consultas_privadas/" + id).remove();
 }
+// ==========================================
+// MOTOR DEL CHAT PÚBLICO (CON AUTODESTRUCCIÓN)
+// ==========================================
+
+// 1. LIMPIEZA AUTOMÁTICA DE 48 HORAS
+function limpiarChatPublicoViejo() {
+    const limite48Horas = Date.now() - (48 * 60 * 60 * 1000); // 48 horas en milisegundos
+    db.ref("chat_publico").orderByChild("timestamp").endAt(limite48Horas).once("value", snapshot => {
+        if(snapshot.exists()) {
+            snapshot.forEach(mensajeViejo => {
+                mensajeViejo.ref.remove(); // Destruye el mensaje de Firebase
+            });
+            console.log("Chat público limpiado de mensajes antiguos.");
+        }
+    });
+}
+
+// Ejecutamos la limpieza cada vez que alguien abre la aplicación
+limpiarChatPublicoViejo();
+
+// 2. ENVIAR MENSAJE DE TEXTO
+function enviarMensajePublico() {
+    const msg = document.getElementById('chat-input').value;
+    if(msg.trim()) { 
+        db.ref("chat_publico").push({ 
+            user: esAdmin ? nombreAdmin : "Familiar", 
+            texto: msg, 
+            tipo: "texto",
+            timestamp: Date.now() 
+        }); 
+        document.getElementById('chat-input').value = ""; 
+    }
+}
+
+// 3. ENVIAR NOTA DE VOZ (GEMELA)
+let grabandoPublico = false;
+async function toggleMicPublico() {
+    const btn = document.getElementById('btn-mic-publico');
+    if (!grabandoPublico) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    db.ref("chat_publico").push({
+                        user: esAdmin ? nombreAdmin : "Familiar",
+                        tipo: "audio", 
+                        contenido: e.target.result,
+                        timestamp: Date.now()
+                    });
+                };
+                reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
+            };
+            mediaRecorder.start(); 
+            grabandoPublico = true;
+            btn.innerHTML = "⏹️"; btn.style.background = "#ffcdd2";
+        } catch (err) { alert("Permiso de micrófono denegado."); }
+    } else { 
+        mediaRecorder.stop(); 
+        grabandoPublico = false; 
+        btn.innerHTML = "🎤"; btn.style.background = "#e0e0e0"; 
+    }
+}
+
+// 4. ENVIAR FOTO COMPRIMIDA (GEMELA)
+function procesarArchivoPublico(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Compresor para que Firebase no colapse
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; const MAX_HEIGHT = 800;
+                let width = img.width; let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                } else {
+                    if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                }
+
+                canvas.width = width; canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // 60% de calidad
+
+                db.ref("chat_publico").push({
+                    user: esAdmin ? nombreAdmin : "Familiar",
+                    tipo: "imagen", 
+                    contenido: dataUrl, 
+                    timestamp: Date.now()
+                });
+            }
+            img.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    } else {
+        alert("En el chat público solo se permiten imágenes y audios.");
+    }
+}
+
+// 5. ESCUCHAR Y DIBUJAR LOS MENSAJES (Sabiendo interpretar texto, audio y foto)
+db.ref("chat_publico").limitToLast(20).on("child_added", s => {
+    const data = s.val();
+    const box = document.getElementById("public-messages");
+    
+    let contenidoVisual = data.texto; // Por defecto asumimos que es texto
+    
+    if (data.tipo === 'audio') {
+        contenidoVisual = `<audio controls src="${data.contenido}" style="max-width:100%; height:40px; margin-top:5px;"></audio>`;
+    } else if (data.tipo === 'imagen') {
+        contenidoVisual = `<img src="${data.contenido}" style="max-width:100%; border-radius:8px; margin-top:5px;">`;
+    } else if (data.text) { 
+        // Por si quedan mensajes viejos guardados con tu formato anterior
+        contenidoVisual = data.text; 
+    }
+
+    const esAdminMsg = data.user.includes("Dr") || data.user.includes("Abg");
+    const colorNombre = esAdminMsg ? "var(--primary)" : "#555";
+    const fondoMsg = esAdminMsg ? "#e3f2fd" : "#fff"; // Mensajes de admin resaltan en azul claro
+
+    box.innerHTML += `
+        <div class="msg" style="background:${fondoMsg}; border:1px solid #e0e0e0; margin-bottom:8px; padding:10px; border-radius:8px;">
+            <b style="color:${colorNombre}; font-size:0.9em;">${data.user}:</b><br>
+            <span style="font-size:0.95em;">${contenidoVisual}</span>
+        </div>`;
+    box.scrollTop = box.scrollHeight;
+});
 
 </script>
 </body>
