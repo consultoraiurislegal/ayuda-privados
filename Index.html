@@ -4,102 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privados - Auxilio Legal</title>
-        <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a237e">
-    <link rel="apple-touch-icon" href="icono-192.png">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
-        :root {
-            --primary: #1a237e;
-            --secondary: #c62828;
-            --accent: #25D366;
-            --bg: #f0f2f5;
-            --white: #ffffff;
-            --purple: #9c27b0;
-        }
-
+        :root { --primary: #1a237e; --secondary: #c62828; --accent: #25D366; --bg: #f0f2f5; --white: #ffffff; --purple: #9c27b0; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 20px; }
-        
-        /* Encabezado */
-        header { 
-            background: var(--primary); color: var(--white); 
-            padding: 25px 15px; text-align: center; 
-            border-radius: 0 0 25px 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
+        header { background: var(--primary); color: var(--white); padding: 25px 15px; text-align: center; border-radius: 0 0 25px 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         header h1 { margin: 0; font-size: 1.8em; letter-spacing: 2px; }
         header p { font-size: 0.85em; margin-top: 10px; line-height: 1.4; opacity: 0.9; }
-
         .container { padding: 15px; }
         .view { display: none; animation: fadeIn 0.4s; }
         .active-view { display: block; }
-
-        /* Tarjeta de Gancho WhatsApp */
-        .hook-card {
-            background: linear-gradient(135deg, #1a237e, #3949ab);
-            color: white; padding: 20px; border-radius: 15px;
-            text-align: center; margin-bottom: 20px;
-        }
-        .btn-private {
-            background: var(--accent); color: white; padding: 12px;
-            border-radius: 8px; text-decoration: none; display: block;
-            font-weight: bold; margin-top: 12px; border: none; width: 100%;
-        }
-
-        /* Nav Grid */
+        .hook-card { background: linear-gradient(135deg, #1a237e, #3949ab); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
+        .btn-private { background: var(--accent); color: white; padding: 12px; border-radius: 8px; text-decoration: none; display: block; font-weight: bold; margin-top: 12px; border: none; width: 100%; }
         .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
-        .nav-item { 
-            background: var(--white); padding: 20px; border-radius: 15px; 
-            text-align: center; font-weight: bold; color: var(--primary);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;
-        }
-
-        /* ACADEMIA JURÍDICA (DISEÑO NUEVO) */
-        .academia-header { 
-            background: #fff; border: 1px solid #e1bee7; padding: 15px; 
-            border-radius: 15px; margin-bottom: 20px; 
-        }
-        .search-box input { 
-            width: 93%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px;
-        }
-        .card-juridica {
-            background: white; border-radius: 15px; padding: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px;
-            border-left: 5px solid var(--purple);
-        }
+        .nav-item { background: var(--white); padding: 20px; border-radius: 15px; text-align: center; font-weight: bold; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; }
+        .academia-header { background: #fff; border: 1px solid #e1bee7; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+        .search-box input { width: 93%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; }
+        .card-juridica { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid var(--purple); }
         .tag-tutorial { background: #673ab7; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; }
         .author-info { font-size: 0.75em; color: #666; margin: 10px 0; }
-        
         .card-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 15px; }
         .btn-action { border: none; padding: 8px; border-radius: 5px; color: white; font-size: 0.65em; font-weight: bold; }
-
-        /* Chat Público */
         .chat-container { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        #public-messages { height: 150px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; }
         .msg { margin-bottom: 8px; padding: 8px; background: #f1f3f9; border-radius: 8px; font-size: 0.9em; }
-
-        /* Admin */
         #admin-panel { display: none; background: #fff3cd; padding: 15px; border-radius: 15px; border: 2px dashed #ffeeba; margin-top: 20px; }
         .admin-input { width: 92%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+ #private-messages {
+    position: relative;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><text x="50%" y="50%" font-size="14" fill="rgba(0,0,0,0.1)" font-family="Arial" text-anchor="middle">CHAT COMPLETAMENTE PRIVADO. Todo lo compartido aquí se autodestruirá al salir, refrescar o cerrar la ventana, garantizando total confidencialidad y secreto profesional cliente-abogado.</text></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
     </style>
 </head>
 <body>
 
 <header id="main-header">
     <h1>PRIVADOS</h1>
-    <p>Orientación jurídica gratuita para familiares de detenidos en Táchira. Facilitamos el acceso a la justicia con ética y confidencialidad profesional.</p>
+    <p>Orientación jurídica gratuita para familiares de detenidos en Táchira.</p>
 </header>
 
 <div class="container">
-
     <div id="view-home" class="view active-view">
         <div class="chat-container">
             <h4 style="margin:0; color: var(--secondary)">💬 Chat Público de Apoyo</h4>
-            <div id="public-messages"></div>
+            <div id="public-messages" style="height: 150px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px;"></div>
             <div style="display:flex; gap:5px;">
                 <input type="text" id="chat-input" style="flex:1; padding:10px;" placeholder="Escribe tu duda...">
                 <button onclick="enviarMensajePublico()" style="background:var(--primary); color:white; border:none; padding:10px; border-radius:5px;">Enviar</button>
@@ -108,7 +65,7 @@
 
         <div class="hook-card">
             <h3>¿Consulta Privada y Gratuita?</h3>
-            <p>Hable con el Dr. Charles Reyes para una segunda opinión confidencial sobre su caso.</p>
+            <p>Obtenga una segunda opinión confidencial sobre su caso.</p>
             <button onclick="showView('view-chat-privado')" class="btn-private">SOLICITAR SEGUNDA OPINIÓN</button>
         </div>
 
@@ -125,7 +82,7 @@
         <div class="academia-header">
             <h3 style="margin:0; color:var(--purple);">💡 ACADEMIA Y GUÍA</h3>
             <div class="search-box">
-                <input type="text" id="busqueda" onkeyup="filtrar()" placeholder="🔍 Buscar tema (ej: audiencia, juicio)...">
+                <input type="text" id="busqueda" onkeyup="filtrar()" placeholder="🔍 Buscar tema...">
             </div>
         </div>
         <div id="lista-proceso-dinamica"></div>
@@ -146,55 +103,78 @@
     <div id="admin-panel">
         <h3>Panel Administrador</h3>
         <input type="text" id="adm-proc-tit" class="admin-input" placeholder="Título de la Fase">
-        <textarea id="adm-proc-txt" class="admin-input" placeholder="Explicación jurídica detallada..."></textarea>
+        <textarea id="adm-proc-txt" class="admin-input" placeholder="Explicación jurídica..."></textarea>
         <button onclick="guardarProc()" style="width:100%; background:var(--purple); color:white; padding:10px; border:none; border-radius:5px;">Publicar en Academia</button>
         <hr>
         <input type="text" id="adm-org-nom" class="admin-input" placeholder="Organismo">
         <input type="text" id="adm-org-tel" class="admin-input" placeholder="Teléfono/Dirección">
         <button onclick="guardarOrg()" style="width:100%; background:var(--primary); color:white; padding:10px; border:none; border-radius:5px;">Guardar Organismo</button>
+        <hr>
+        <h4 style="margin-bottom:5px; color:#00796b;">👥 Registrar Colegas al Equipo</h4>
+        <input type="text" id="adm-abg-pin" class="admin-input" placeholder="Crear PIN (ej. 5678)">
+        <input type="text" id="adm-abg-nom" class="admin-input" placeholder="Nombre (ej. Dra. Ana Silva)">
+        <input type="text" id="adm-abg-tel" class="admin-input" placeholder="WhatsApp (ej. 584140000000 sin el +)">
+        <button onclick="guardarAbogado()" style="width:100%; background:#00796b; color:white; padding:10px; border:none; border-radius:5px;">Añadir Abogado al Equipo</button>
+        
+        <div id="seccion-alertas" style="margin-top:20px; background:#f8d7da; padding:10px; border-radius:10px;">
+            <h4 style="margin:0; color:#721c24;">🚨 ALERTAS EN VIVO</h4>
+            <div id="alertas-recientes" style="max-height:150px; overflow-y:auto;">
+                <p style="font-size:0.8em;">Esperando nuevas consultas...</p>
+            </div>
+        </div>
         <button onclick="this.parentElement.style.display='none'" style="width:100%; margin-top:10px; color:red; border:none; background:none;">Cerrar Panel</button>
     </div>
-<div id="view-chat-privado" class="view">
-    <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-    <div class="chat-container" style="border-top: 5px solid var(--accent);">
-        <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
-        <p style="font-size: 0.8em; color: #666;">Inicie su consulta gratuita. Sus datos están protegidos por secreto profesional.</p>
-        
-        <div id="registro-consulta">
-            <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
-            <select id="priv-motivo" class="admin-input">
-                <option value="">¿Motivo de la detención?</option>
-                <option value="Drogas">Drogas</option>
-                <option value="Homicidio">Homicidio</option>
-                <option value="Robo/Hurto">Robo/Hurto</option>
-                <option value="Otro">Otro / No sabe</option>
-            </select>
-            <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
-        </div>
 
-        <div id="interfaz-chat-privado" style="display:none;">
-            <div id="private-messages" style="height: 250px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px;"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="priv-input" style="flex:1; padding:10px;" placeholder="Escriba su consulta aquí...">
-                <button onclick="enviarMensajePrivado()" style="background:var(--accent); color:white; border:none; padding:10px; border-radius:5px;">Enviar</button>
+    <div id="view-chat-privado" class="view">
+        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+        <div class="chat-container" style="border-top: 5px solid var(--accent);">
+            <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
+            <div id="registro-consulta">
+                <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
+                <select id="priv-motivo" class="admin-input">
+                    <option value="">¿Motivo de la detención?</option>
+                    <option value="Drogas">Drogas</option>
+                    <option value="Homicidio">Homicidio</option>
+                    <option value="Robo/Hurto">Robo/Hurto</option>
+                    <option value="Otro">Otro / No sabe</option>
+                </select>
+                <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
             </div>
-            <p style="font-size:0.7em; text-align:center; color:gray; margin-top:10px;">Si el Dr. no responde de inmediato, puede saltar al WhatsApp directo.</p>
-            <a id="btn-salto-wa" href="#" class="btn-private" style="background:#25D366; font-size:0.8em;">IR AL WHATSAPP DIRECTO</a>
-        </div>
-    </div>
-        <div id="seccion-alertas" style="margin-top:20px; background:#f8d7da; padding:10px; border-radius:10px;">
-        <h4 style="margin:0; color:#721c24;">🚨 ALERTAS EN VIVO</h4>
-        <div id="alertas-recientes" style="max-height:150px; overflow-y:auto;">
-            <p style="font-size:0.8em;">Esperando nuevas consultas...</p>
-        </div>
-    </div>
+
+            <div id="interfaz-chat-privado" style="display:none;">
+    <div id="private-messages" style="height: 300px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px;"></div>
+    
+<div style="display: flex; flex-direction: column; gap: 10px;">
+    <textarea id="priv-input" style="width: 95%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit;" placeholder="Escriba su mensaje confidencial aquí..."></textarea>
+    
+   <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+    <label for="priv-file-upload" style="background: #e0e0e0; padding: 10px; border-radius: 8px; cursor: pointer; flex: 0.5; text-align: center;">📎</label>
+    <button id="btn-mic-privado" style="background: #e0e0e0; border: none; padding: 10px; border-radius: 8px; flex: 0.5; cursor: pointer;" onclick="toggleMicPrivado()">🎤</button>
+    
+    <button onclick="enviarMensajeTextoPrivado()" style="background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; flex: 2; font-weight: bold;">ENVIAR MENSAJE</button>
+</div>
 
 </div>
 
+    <button onclick="destruirChatPrivado()" style="background:#c62828; color:white; border:none; padding:12px; border-radius:8px; margin-top:10px; width:100%; font-weight:bold;">🔥 DESTRUIR CHAT Y SALIR</button>
+</div>
+
+        </div>
+    </div>
 </div>
 
 <script>
-    // Configuración Firebase (Usando tus credenciales reales)
+    // BOMBA DE CACHÉ PWA
+    if ('caches' in window) { caches.keys().then(names => { names.forEach(name => { caches.delete(name); }); }); }
+
+    // REGISTRO DEL SERVICE WORKER (Faltaba en el código anterior)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(error => { console.log('SW falló:', error); });
+      });
+    }
+
+    // Configuración Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
         authDomain: "privadosayuda-f01f1.firebaseapp.com",
@@ -209,207 +189,276 @@
     const db = firebase.database();
     firebase.auth().signInAnonymously();
 
-    // Navegación
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
         document.getElementById(id).classList.add('active-view');
         window.scrollTo(0,0);
     }
 
-    // Buscador
-    function filtrar() {
-        let val = document.getElementById('busqueda').value.toLowerCase();
-        document.querySelectorAll('.card-juridica').forEach(c => {
-            c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none";
-        });
-    }
+    // --- SISTEMA MULTI-ADMINISTRADOR DINÁMICO ---
+    let t = 0; let esAdmin = false; 
+    let nombreAdmin = ""; let telefonoAdmin = "";
 
-    // TRUCO ADMIN MODIFICADO
-    let t = 0;
-    let esAdmin = false; 
+    // Cargar la lista de abogados desde Firebase
+    let equipoLegalDinamico = {};
+    db.ref("equipo_legal").on("value", s => {
+        if(s.exists()) {
+            equipoLegalDinamico = s.val();
+        } else {
+            // Clave fundadora obligatoria
+            equipoLegalDinamico = { "1234": { nombre: "Dr. Charles Reyes", telefono: "584247640846" } };
+        }
+    });
+
+    // 5 Toques para abrir el panel y cargar el módulo de colegas
     document.getElementById('main-header').onclick = () => {
         if(++t === 5) {
-            if(prompt("Clave:") === "1234") {
+            let clave = prompt("Ingrese clave de acceso profesional (PIN):");
+            if(equipoLegalDinamico[clave]) {
                 document.getElementById('admin-panel').style.display='block';
                 esAdmin = true; 
-                alert("Modo Administrador activado. Tus mensajes saldrán como Dr. Charles Reyes.");
+                nombreAdmin = equipoLegalDinamico[clave].nombre; 
+                telefonoAdmin = equipoLegalDinamico[clave].telefono;
+                alert("Despacho abierto.\nSesión iniciada como: " + nombreAdmin);
+            } else if (clave) {
+                alert("Clave denegada. Colega no registrado.");
             }
             t = 0;
         }
     };
 
-    // Chat Público MODIFICADO
-    function enviarMensajePublico() {
-        const msg = document.getElementById('chat-input').value;
-        if(msg.trim()) {
-            db.ref("chat_publico").push({ 
-                user: esAdmin ? "Dr. Charles Reyes" : "Familiar", 
-                text: msg 
-            });
-            document.getElementById('chat-input').value = "";
+    function guardarAbogado() {
+        const pin = document.getElementById('adm-abg-pin').value;
+        const nom = document.getElementById('adm-abg-nom').value;
+        const tel = document.getElementById('adm-abg-tel').value;
+        if(pin && nom && tel) {
+            db.ref("equipo_legal/" + pin).set({ nombre: nom, telefono: tel });
+            alert("Colega " + nom + " registrado con éxito en el sistema.");
+            document.getElementById('adm-abg-pin').value = "";
+            document.getElementById('adm-abg-nom').value = "";
+            document.getElementById('adm-abg-tel').value = "";
+        } else {
+            alert("Por favor llene el PIN, el Nombre y el Teléfono del colega.");
         }
     }
 
-    db.ref("chat_publico").limitToLast(10).on("child_added", s => {
-        document.getElementById("public-messages").innerHTML += `<div class="msg"><b>${s.val().user}:</b> ${s.val().text}</div>`;
-        document.getElementById("public-messages").scrollTop = 9999;
-    });
-
-    // Cargar Academia
-    db.ref("proceso_penal").on("value", s => {
-        const list = document.getElementById('lista-proceso-dinamica');
-        list.innerHTML = "";
-        s.forEach(child => {
-            const v = child.val();
-            list.innerHTML += `
-                <div class="card-juridica">
-                    <span class="tag-tutorial">TUTORIAL</span>
-                    <h3>${v.titulo}</h3>
-                    <div class="author-info">✍️ Autor: Dr. Charles Reyes | 📅 2026</div>
-                    <p style="font-size:0.9em; color:#444;">${v.texto.substring(0, 80)}...</p>
-                    <div class="card-actions">
-                        <button class="btn-action" style="background:var(--purple);" onclick="alert('${v.texto}')">LEER</button>
-                        <button class="btn-action" style="background:#f39c12;" onclick="showView('view-home')">DEBATE</button>
-                        <button class="btn-action" style="background:var(--accent);" onclick="window.open('https://wa.me/584247640846?text=Compartir:${v.titulo}')">ENVIAR</button>
-                        <button class="btn-action" style="background:#e74c3c;">PDF</button>
-                    </div>
-                </div>`;
-        });
-    });
-
-    // Guardar Funciones
-    function guardarProc() {
-        const t = document.getElementById('adm-proc-tit').value;
-        const txt = document.getElementById('adm-proc-txt').value;
-        if(t && txt) db.ref("proceso_penal").push({ titulo: t, texto: txt });
-    }
-
-    function guardarOrg() {
-        const n = document.getElementById('adm-org-nom').value;
-        const i = document.getElementById('adm-org-tel').value;
-        if(n && i) db.ref("organismos").push({ nombre: n, info: i });
-    }
-
-    db.ref("organismos").on("value", s => {
-        const l = document.getElementById('lista-organismos');
-        l.innerHTML = "";
-        s.forEach(c => {
-            const v = c.val();
-            l.innerHTML += `<div class="card-juridica" style="border-left-color:var(--primary)"><strong>${v.nombre}</strong><br><small>${v.info}</small></div>`;
-        });
-    });
-    
+    // --- LÓGICA DE CHAT PRIVADO ---
     let consultaActualId = null;
+    let listenerPrivado = null;
 
     function iniciarConsulta() {
         const nombre = document.getElementById('priv-nombre').value;
         const motivo = document.getElementById('priv-motivo').value;
 
         if(nombre && motivo) {
-            // Creamos un ID único para esta sesión de chat
             consultaActualId = "CONSULTA_" + Date.now();
-            
-            // Guardamos el inicio de la consulta en Firebase
-            db.ref("consultas_privadas/" + consultaActualId).set({
-                cliente: nombre,
-                motivo: motivo,
-                timestamp: Date.now(),
-                estado: "abierta"
-            });
+            const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
 
-            // Cambiamos la interfaz
+            refConsulta.onDisconnect().remove(); // Anti-Cateo
+
+            refConsulta.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "abierta" });
+
             document.getElementById('registro-consulta').style.display = 'none';
             document.getElementById('interfaz-chat-privado').style.display = 'block';
             
-            // Configuramos el botón de WhatsApp final con los datos ya filtrados
-            document.getElementById('btn-salto-wa').href = `https://wa.me/584247640846?text=Hola%20Dr.%20Charles,%20mi%20nombre%20es%20${nombre}.%20Le%20escribo%20por%20un%20caso%20de%20${motivo}.`;
+            refConsulta.on("value", s => {
+                const data = s.val();
+                if(data && data.abogadoNombre && data.abogadoTelefono) {
+                    document.getElementById('titulo-abogado').innerHTML = `🤝 Su caso fue asignado a: <b>${data.abogadoNombre}</b>`;
+                    const btnWa = document.getElementById('btn-salto-wa');
+                    btnWa.href = `https://wa.me/${data.abogadoTelefono}?text=Hola%20${data.abogadoNombre},%20vengo%20de%20la%20App%20Privados.%20Soy%20${data.cliente},%20le%20escribo%20por%20un%20caso%20de%20${data.motivo}.`;
+                    btnWa.innerText = `IR AL WHATSAPP DE ${data.abogadoNombre.toUpperCase()}`;
+                }
+            });
             
             escucharMensajesPrivados();
         } else {
-            alert("Por favor, complete sus datos para filtrar su caso.");
+            alert("Por favor, complete sus datos.");
         }
     }
 
-    // CHAT PRIVADO MODIFICADO
-    function enviarMensajePrivado() {
-        const texto = document.getElementById('priv-input').value;
-        if(texto.trim() && consultaActualId) {
-            db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
-                emisor: esAdmin ? "Dr. Charles Reyes" : "Familiar", 
-                texto: texto,
-                fecha: new Date().toLocaleTimeString()
-            });
-            document.getElementById('priv-input').value = "";
-        }
-    }
-    // LEYENDO LOS MENSAJES PRIVADOS EN TIEMPO REAL
-    let listenerPrivado = null;
-
-    function escucharMensajesPrivados() {
-        const box = document.getElementById('private-messages');
-        box.innerHTML = ""; // Limpia el historial anterior
-        
-        // Evita que se crucen los chats si atiendes a varios
-        if (listenerPrivado) { listenerPrivado.off(); }
-
-        listenerPrivado = db.ref("consultas_privadas/" + consultaActualId + "/mensajes");
-        
-        listenerPrivado.on("child_added", s => {
-            const data = s.val();
-            // Truco visual: Tus mensajes salen en verde claro, los del cliente en gris
-            const isDoc = data.emisor.includes("Dr.");
-            const bgColor = isDoc ? "#d1f5d3" : "#f1f3f9"; 
-            
-            box.innerHTML += `<div class="msg" style="background: ${bgColor}; border-radius: 8px; padding: 8px; margin-bottom: 5px;">
-                                <b>${data.emisor}:</b> ${data.texto} <br>
-                                <small style="font-size:0.7em; color:#888;">${data.fecha}</small>
-                              </div>`;
-            box.scrollTop = box.scrollHeight; // Baja el scroll automáticamente
+    function enviarMensajeTextoPrivado() {
+    const input = document.getElementById('priv-input'); // ID corregido
+    const texto = input.value;
+    if (texto.trim() !== "" && consultaActualId !== null) {
+        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
+            emisor: esAdmin ? nombreAdmin : "Familiar",
+            tipo: "texto",
+            contenido: texto,
+            fecha: new Date().toLocaleTimeString()
         });
+        input.value = ""; 
+    }
+}
+
+
+function escucharMensajesPrivados() {
+    const box = document.getElementById('private-messages');
+    box.innerHTML = ""; 
+    if (listenerPrivado) { listenerPrivado.off(); }
+    listenerPrivado = db.ref("consultas_privadas/" + consultaActualId + "/mensajes");
+    
+    listenerPrivado.on("child_added", s => {
+        const data = s.val();
+        if(!data) return;
+
+        // Determinar color de burbuja según emisor
+        const isDoc = data.emisor.includes("Dr.") || data.emisor.includes("Abg.");
+        const bgColor = isDoc ? "#d1f5d3" : "#f1f3f9"; 
+        
+        let contenidoHtml = "";
+        
+        // LÓGICA DE DETECCIÓN DE ARCHIVOS
+        if (!data.tipo || data.tipo === 'texto') {
+            contenidoHtml = data.texto || data.contenido;
+        } else if (data.tipo === 'imagen') {
+            // Muestra la imagen directamente
+            contenidoHtml = `<img src="${data.contenido}" style="max-width:100%; border-radius:8px; margin-top:5px;">`;
+        } else if (data.tipo === 'audio') {
+            // Genera un reproductor de audio
+            contenidoHtml = `<audio controls src="${data.contenido}" style="width:100%; height:30px; margin-top:5px;"></audio>`;
+        } else if (data.tipo === 'archivo') {
+            // Crea un enlace de descarga para PDFs u otros
+            contenidoHtml = `📄 <a href="${data.contenido}" download="${data.nombreArchivo || 'archivo'}" style="color:var(--primary); font-weight:bold;">Descargar: ${data.nombreArchivo || 'Ver archivo'}</a>`;
+        }
+        
+        box.innerHTML += `<div class="msg" style="background: ${bgColor}; border-radius: 8px; padding: 10px; margin-bottom: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                            <b>${data.emisor}:</b><br>${contenidoHtml}<br>
+                            <small style="font-size:0.7em; color:#888;">${data.fecha || ''}</small>
+                          </div>`;
+        box.scrollTop = box.scrollHeight; 
+    });
+}
+
+
+
+    function destruirChatPrivado() {
+        if(consultaActualId) {
+            db.ref("consultas_privadas/" + consultaActualId).remove()
+              .then(() => {
+                  alert("Chat destruido y borrado de la base de datos por seguridad.");
+                  location.reload(); 
+              });
+        }
     }
 
-       // --- LÓGICA DE NOTIFICACIÓN SONORA ---
-    // Usamos un sonido de notificación de sistema
+    // --- ALARMA Y ADJUDICACIÓN DE CASOS ---
     const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-    // Escuchador para Alertas en el Panel de Abogado
     db.ref("consultas_privadas").on("child_added", (snapshot) => {
-        if (esAdmin) { // Solo suena si tú tienes el modo admin activo
-            sonidoAlerta.play().catch(e => console.log("Esperando interacción para sonar..."));
-            
-            // Actualizamos la lista de alertas en el panel
+        if (esAdmin) { 
             const data = snapshot.val();
-            const alertaDiv = document.getElementById('alertas-recientes');
-            const nuevaAlerta = document.createElement('div');
-            nuevaAlerta.style = "background:#fff; margin-top:5px; padding:10px; border-radius:5px; border-left:4px solid red;";
-            nuevaAlerta.innerHTML = `<strong>NUEVA CONSULTA:</strong> ${data.cliente} (${data.motivo}) <br> 
-                                     <button onclick="atenderConsulta('${snapshot.key}')" style="background:var(--primary); color:white; border:none; padding:5px; margin-top:5px; border-radius:3px;">ATENDER</button>`;
-            alertaDiv.prepend(nuevaAlerta);
+            if(data && data.estado === "abierta") {
+                sonidoAlerta.play().catch(e => console.log("Sonido en espera..."));
+                const alertaDiv = document.getElementById('alertas-recientes');
+                const nuevaAlerta = document.createElement('div');
+                nuevaAlerta.id = "alerta-" + snapshot.key;
+                nuevaAlerta.style = "background:#fff; margin-top:5px; padding:10px; border-radius:5px; border-left:4px solid red;";
+                nuevaAlerta.innerHTML = `<strong>NUEVA CONSULTA:</strong> ${data.cliente} (${data.motivo}) <br> 
+                                         <button onclick="atenderConsulta('${snapshot.key}')" style="background:var(--primary); color:white; border:none; padding:5px; margin-top:5px; border-radius:3px; font-weight:bold;">ATENDER CASO</button>`;
+                alertaDiv.prepend(nuevaAlerta);
+            }
         }
     });
 
-    // Función para que el abogado entre al chat del cliente
+    db.ref("consultas_privadas").on("child_changed", (snapshot) => {
+        const data = snapshot.val();
+        if(data && data.estado === "atendida") {
+            const alertaABorrar = document.getElementById("alerta-" + snapshot.key);
+            if(alertaABorrar) alertaABorrar.remove();
+        }
+    });
+
     function atenderConsulta(id) {
         consultaActualId = id;
+        db.ref("consultas_privadas/" + id).update({
+            abogadoNombre: nombreAdmin,
+            abogadoTelefono: telefonoAdmin,
+            estado: "atendida"
+        });
+
         document.getElementById('registro-consulta').style.display = 'none';
         document.getElementById('interfaz-chat-privado').style.display = 'block';
-        document.getElementById('private-messages').innerHTML = ""; // Limpiar para cargar el nuevo
         showView('view-chat-privado');
         escucharMensajesPrivados();
     }
 
-    // REGISTRO DEL SERVICE WORKER (PWA)
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(registro => {
-            console.log('PWA lista y registrada con éxito:', registro.scope);
-          })
-          .catch(error => {
-            console.log('Falló el registro de la PWA:', error);
-          });
-      });
+    // --- CHAT PÚBLICO (Limpieza 24h) ---
+    function enviarMensajePublico() {
+        const msg = document.getElementById('chat-input').value;
+        if(msg.trim()) { 
+            db.ref("chat_publico").push({ user: esAdmin ? nombreAdmin : "Familiar", text: msg, timestamp: Date.now() }); 
+            document.getElementById('chat-input').value = ""; 
+        }
     }
+    db.ref("chat_publico").limitToLast(15).on("child_added", s => {
+        const data = s.val();
+        const vidaUtil = 24 * 60 * 60 * 1000; 
+        if (data.timestamp && (Date.now() - data.timestamp > vidaUtil)) {
+            db.ref("chat_publico/" + s.key).remove();
+            return; 
+        }
+        const box = document.getElementById("public-messages");
+        box.innerHTML += `<div class="msg"><b>${data.user}:</b> ${data.text}</div>`;
+        box.scrollTop = box.scrollHeight;
+    });
+
+    // Funciones Secundarias
+    function filtrar() { let val = document.getElementById('busqueda').value.toLowerCase(); document.querySelectorAll('.card-juridica').forEach(c => c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none"); }
+    function guardarProc() { const t = document.getElementById('adm-proc-tit').value; const txt = document.getElementById('adm-proc-txt').value; if(t && txt) db.ref("proceso_penal").push({ titulo: t, texto: txt }); }
+    function guardarOrg() { const n = document.getElementById('adm-org-nom').value; const i = document.getElementById('adm-org-tel').value; if(n && i) db.ref("organismos").push({ nombre: n, info: i }); }
+    
+    // --- FUNCIONES PARA AUDIO Y ARCHIVOS ---
+let mediaRecorder;
+let audioChunks = [];
+let grabando = false;
+
+// Procesar Archivos e Imágenes
+function procesarArchivoPrivado(event) {
+    const archivo = event.target.files[0];
+    if (!archivo) return;
+    const lector = new FileReader();
+    lector.onload = function(e) {
+        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
+            emisor: esAdmin ? nombreAdmin : "Familiar",
+            tipo: archivo.type.startsWith('image/') ? "imagen" : "archivo",
+            contenido: e.target.result,
+            nombreArchivo: archivo.name,
+            fecha: new Date().toLocaleTimeString()
+        });
+    };
+    lector.readAsDataURL(archivo);
+}
+
+// Control del Micrófono
+async function toggleMicPrivado() {
+    const btn = document.getElementById('btn-mic-privado');
+    if (!grabando) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const lector = new FileReader();
+                lector.onload = (e) => {
+                    db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
+                        emisor: esAdmin ? nombreAdmin : "Familiar",
+                        tipo: "audio", contenido: e.target.result,
+                        fecha: new Date().toLocaleTimeString()
+                    });
+                };
+                lector.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
+            };
+            mediaRecorder.start();
+            grabando = true;
+            btn.innerHTML = "⏹️ Detener"; btn.style.background = "#ffcdd2";
+        } catch (err) { alert("Acceso al micrófono denegado."); }
+    } else {
+        mediaRecorder.stop(); grabando = false;
+        btn.innerHTML = "🎤 Grabar"; btn.style.background = "#e0e0e0";
+    }
+}
 
 </script>
 </body>
