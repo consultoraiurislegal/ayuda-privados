@@ -496,7 +496,7 @@ function atenderConsulta(id) {
 function escucharMensajesPrivados() {
     const box = document.getElementById('private-messages');
     if (listenerPrivado) listenerPrivado.off();
-
+box.innerHTML = '';
     const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
 
     // DETECTOR DE CIERRE DE SESIÓN SEGURO
