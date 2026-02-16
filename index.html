@@ -142,19 +142,42 @@
             </div>
 
             <div id="interfaz-chat-privado" style="display:none;">
-    <div id="private-messages" style="height: 300px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px;"></div>
+<div id="private-messages" style="height: 300px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px; position: relative;">
+    <div id="fondo-advertencia" style="padding: 20px; text-align: center; color: #777; font-size: 0.85em; pointer-events: none;">
+        <p>⚠️ <b>ZONA DE ALTA CONFIDENCIALIDAD</b></p>
+        <p>Use el botón <b>rojo</b> para destruir toda la información (mensajes, audios y archivos) de forma permanente.</p>
+        <p>Al cerrar o refrescar esta ventana, los datos se borrarán automáticamente para garantizar el secreto profesional.</p>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
+        <p style="color: var(--accent); font-weight: bold;">Para asesoría con historial persistente, use el botón de WhatsApp.</p>
+    </div>
+</div>
+
     
 <div style="display: flex; flex-direction: column; gap: 10px;">
-    <textarea id="priv-input" style="width: 95%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit;" placeholder="Escriba su mensaje confidencial aquí..."></textarea>
+    <textarea id="priv-input" style="width: 95%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inheri0t;" placeholder="Escriba su mensaje confidencial aquí..."></textarea>
     
    <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+    <input type="file" id="priv-file-upload" style="display: none;" onchange="procesarArchivoPrivado(event)">
+    
     <label for="priv-file-upload" style="background: #e0e0e0; padding: 10px; border-radius: 8px; cursor: pointer; flex: 0.5; text-align: center;">📎</label>
+    
     <button id="btn-mic-privado" style="background: #e0e0e0; border: none; padding: 10px; border-radius: 8px; flex: 0.5; cursor: pointer;" onclick="toggleMicPrivado()">🎤</button>
     
     <button onclick="enviarMensajeTextoPrivado()" style="background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; flex: 2; font-weight: bold;">ENVIAR MENSAJE</button>
 </div>
 
+
 </div>
+<div id="info-abogado-asignado" style="margin-top: 10px;">
+    <p id="titulo-abogado" style="font-size: 0.9em; text-align: center; color: #555;"></p>
+    <a id="btn-salto-wa" href="javascript:void(0)" onclick="if(this.href.includes('javascript')) alert('Esperando a que un abogado acepte su caso para habilitar WhatsApp...')" target="_blank" style="text-decoration: none;">
+    <button style="background: #ccc; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        ⌛ ESPERANDO ASIGNACIÓN...
+    </button>
+</a>
+
+</div>
+
 
     <button onclick="destruirChatPrivado()" style="background:#c62828; color:white; border:none; padding:12px; border-radius:8px; margin-top:10px; width:100%; font-weight:bold;">🔥 DESTRUIR CHAT Y SALIR</button>
 </div>
@@ -246,55 +269,80 @@
     let consultaActualId = null;
     let listenerPrivado = null;
 
-    function iniciarConsulta() {
-        const nombre = document.getElementById('priv-nombre').value;
-        const motivo = document.getElementById('priv-motivo').value;
+function iniciarConsulta() {
+    const nombre = document.getElementById('priv-nombre').value;
+    const motivo = document.getElementById('priv-motivo').value;
 
-        if(nombre && motivo) {
-            consultaActualId = "CONSULTA_" + Date.now();
-            const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
+    if(nombre && motivo) {
+        consultaActualId = "CONSULTA_" + Date.now();
+        const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
 
-            refConsulta.onDisconnect().remove(); // Anti-Cateo
+        refConsulta.onDisconnect().remove(); 
 
-            refConsulta.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "abierta" });
-
-            document.getElementById('registro-consulta').style.display = 'none';
-            document.getElementById('interfaz-chat-privado').style.display = 'block';
-            
-            refConsulta.on("value", s => {
-                const data = s.val();
-                if(data && data.abogadoNombre && data.abogadoTelefono) {
-                    document.getElementById('titulo-abogado').innerHTML = `🤝 Su caso fue asignado a: <b>${data.abogadoNombre}</b>`;
-                    const btnWa = document.getElementById('btn-salto-wa');
-                    btnWa.href = `https://wa.me/${data.abogadoTelefono}?text=Hola%20${data.abogadoNombre},%20vengo%20de%20la%20App%20Privados.%20Soy%20${data.cliente},%20le%20escribo%20por%20un%20caso%20de%20${data.motivo}.`;
-                    btnWa.innerText = `IR AL WHATSAPP DE ${data.abogadoNombre.toUpperCase()}`;
-                }
-            });
-            
-            escucharMensajesPrivados();
-        } else {
-            alert("Por favor, complete sus datos.");
-        }
-    }
-
-    function enviarMensajeTextoPrivado() {
-    const input = document.getElementById('priv-input'); // ID corregido
-    const texto = input.value;
-    if (texto.trim() !== "" && consultaActualId !== null) {
-        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
-            emisor: esAdmin ? nombreAdmin : "Familiar",
-            tipo: "texto",
-            contenido: texto,
-            fecha: new Date().toLocaleTimeString()
+        refConsulta.set({ 
+            cliente: nombre, 
+            motivo: motivo, 
+            timestamp: Date.now(), 
+            estado: "abierta" 
         });
-        input.value = ""; 
+
+        document.getElementById('registro-consulta').style.display = 'none';
+        document.getElementById('interfaz-chat-privado').style.display = 'block';
+        
+        // ESCUCHADOR DE ASIGNACIÓN
+        refConsulta.on("value", s => {
+            const data = s.val();
+            if(data && data.abogadoNombre && data.abogadoTelefono) {
+                document.getElementById('titulo-abogado').innerHTML = `🤝 Caso asignado a: <b>${data.abogadoNombre}</b>`;
+                
+                const btnWaLink = document.getElementById('btn-salto-wa');
+                
+                // Limpiar el teléfono (quitar espacios o carácteres especiales si los hay)
+                const telLimpio = data.abogadoTelefono.replace(/\D/g,'');
+                
+                // Mensaje predeterminado profesional
+                const mensajeWa = encodeURIComponent(
+                    `*CONSULTA LEGAL PRIVADA*\n\n` +
+                    `Hola, ${data.abogadoNombre}. Solicito una consulta con historial persistente.\n` +
+                    `*Cliente:* ${data.cliente}\n` +
+                    `*Caso:* ${data.motivo}\n\n` +
+                    `Vengo de la App Privados.`
+                );
+                
+                // Actualizamos el atributo href
+                btnWaLink.href = `https://wa.me/${telLimpio}?text=${mensajeWa}`;
+                
+                // Actualizamos el texto del botón
+                const btnVisual = btnWaLink.querySelector('button');
+                btnVisual.innerText = `🟢 CONTACTAR A ${data.abogadoNombre.toUpperCase()}`;
+                btnVisual.style.background = "#25D366";
+            }
+        });
+        
+        escucharMensajesPrivados();
+    } else {
+        alert("Por favor, complete sus datos.");
     }
 }
 
 
+
+    function enviarMensajeTextoPrivado() {
+        const inputStr = document.getElementById('priv-input');
+        const texto = inputStr.value;
+        
+        if(texto.trim() !== "" && consultaActualId !== null) {
+            db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
+                emisor: esAdmin ? nombreAdmin : "Familiar", 
+                texto: texto,
+                fecha: new Date().toLocaleTimeString()
+            }).then(() => { inputStr.value = ""; }).catch(e => alert("Error Firebase: " + e.message));
+        }
+    }
+
 function escucharMensajesPrivados() {
     const box = document.getElementById('private-messages');
-    box.innerHTML = ""; 
+    // Mantenemos el fondo si no hay mensajes aún
     if (listenerPrivado) { listenerPrivado.off(); }
     listenerPrivado = db.ref("consultas_privadas/" + consultaActualId + "/mensajes");
     
@@ -302,27 +350,25 @@ function escucharMensajesPrivados() {
         const data = s.val();
         if(!data) return;
 
-        // Determinar color de burbuja según emisor
+        // OCULTAR ADVERTENCIA: Si llega un mensaje, quitamos el fondo informativo
+        const fondo = document.getElementById('fondo-advertencia');
+        if(fondo) fondo.style.display = 'none';
+
         const isDoc = data.emisor.includes("Dr.") || data.emisor.includes("Abg.");
         const bgColor = isDoc ? "#d1f5d3" : "#f1f3f9"; 
         
         let contenidoHtml = "";
-        
-        // LÓGICA DE DETECCIÓN DE ARCHIVOS
         if (!data.tipo || data.tipo === 'texto') {
             contenidoHtml = data.texto || data.contenido;
         } else if (data.tipo === 'imagen') {
-            // Muestra la imagen directamente
-            contenidoHtml = `<img src="${data.contenido}" style="max-width:100%; border-radius:8px; margin-top:5px;">`;
+            contenidoHtml = `<img src="${data.contenido}" style="max-width:100%; border-radius:8px;">`;
         } else if (data.tipo === 'audio') {
-            // Genera un reproductor de audio
-            contenidoHtml = `<audio controls src="${data.contenido}" style="width:100%; height:30px; margin-top:5px;"></audio>`;
+            contenidoHtml = `<audio controls src="${data.contenido}" style="width:100%; height:30px;"></audio>`;
         } else if (data.tipo === 'archivo') {
-            // Crea un enlace de descarga para PDFs u otros
-            contenidoHtml = `📄 <a href="${data.contenido}" download="${data.nombreArchivo || 'archivo'}" style="color:var(--primary); font-weight:bold;">Descargar: ${data.nombreArchivo || 'Ver archivo'}</a>`;
+            contenidoHtml = `📄 <a href="${data.contenido}" download="${data.nombreArchivo}">Descargar ${data.nombreArchivo}</a>`;
         }
         
-        box.innerHTML += `<div class="msg" style="background: ${bgColor}; border-radius: 8px; padding: 10px; margin-bottom: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+        box.innerHTML += `<div class="msg" style="background: ${bgColor}; border-radius: 8px; padding: 10px; margin-bottom: 5px;">
                             <b>${data.emisor}:</b><br>${contenidoHtml}<br>
                             <small style="font-size:0.7em; color:#888;">${data.fecha || ''}</small>
                           </div>`;
