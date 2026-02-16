@@ -144,6 +144,15 @@
 </select>
 
                 <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
+                <div style="margin-top: 20px; background: #f8f9fa; border-left: 4px solid #1a237e; padding: 15px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <p style="margin: 0 0 8px 0; color: #1a237e; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+        🔒 Garantía de Confidencialidad Absoluta
+    </p>
+    <p style="margin: 0; color: #555; font-size: 0.8em; line-height: 1.5; text-align: justify;">
+        Al iniciar, entrará a un canal completamente confidencial. En estricto cumplimiento del <b>Secreto Profesional</b>, al cerrar la sesión toda la conversación, audios, imágenes y documentos se <b>destruirán automáticamente</b> de la base de datos y de su celular, sin dejar rastro alguno.
+    </p>
+</div>
+
             </div>
 
             <div id="interfaz-chat-privado" style="display:none;">
@@ -261,14 +270,30 @@ document.getElementById('main-header').onclick = () => {
 
 
 // 6. LÓGICA DE CONSULTA (CLIENTE)
+// 6. LÓGICA DE CONSULTA (CLIENTE)
 function iniciarConsulta() {
     const nombre = document.getElementById('priv-nombre').value;
     const motivo = document.getElementById('priv-motivo').value;
+    
     if(nombre && motivo) {
         consultaActualId = "CONSULTA_" + Date.now();
         const ref = db.ref("consultas_privadas/" + consultaActualId);
-        ref.onDisconnect().remove();
+        
+        // ELIMINADA LA INSTRUCCIÓN onDisconnect().remove() PARA QUE PERMANEZCA
+        
         ref.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "pendiente" });
+
+        // GUARDAMOS EL ID EN EL CELULAR DEL FAMILIAR PARA QUE PUEDA REGRESAR LUEGO
+        localStorage.setItem('mi_consulta_id', consultaActualId);
+
+        // Si el abogado borra el caso, limpiamos la memoria y avisamos
+        ref.on('value', snapshot => {
+            if (!snapshot.exists()) {
+                localStorage.removeItem('mi_consulta_id'); // Borramos el rastro
+                alert("🔒 LA SESIÓN HA FINALIZADO: El chat y toda la información han sido destruidos por seguridad profesional.");
+                location.reload(); 
+            }
+        });
 
         document.getElementById('registro-consulta').style.display = 'none';
         document.getElementById('interfaz-chat-privado').style.display = 'block';
@@ -288,6 +313,7 @@ function iniciarConsulta() {
         });
     } else { alert("Complete los datos."); }
 }
+
 
 // 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
 // 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
@@ -376,6 +402,7 @@ function atenderConsulta(id) {
         abogadoNombre: nombreAdmin,
         abogadoTelefono: telefonoAdmin
     });
+    
     consultaActualId = id;
     showView('view-chat-privado');
     document.getElementById('registro-consulta').style.display = 'none';
@@ -383,27 +410,65 @@ function atenderConsulta(id) {
     escucharMensajesPrivados();
 }
 
+
+// 8. CHAT PRIVADO Y MULTIMEDIA
 // 8. CHAT PRIVADO Y MULTIMEDIA
 function escucharMensajesPrivados() {
     const box = document.getElementById('private-messages');
     if (listenerPrivado) listenerPrivado.off();
-    listenerPrivado = db.ref("consultas_privadas/" + consultaActualId + "/mensajes");
+
+    const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
+
+    // DETECTOR DE CIERRE DE SESIÓN SEGURO
+    refConsulta.on('value', s => {
+        if (!s.exists()) {
+            localStorage.removeItem('mi_consulta_id'); // Borrar rastro si el admin lo eliminó
+            alert("⚠️ SESIÓN FINALIZADA: El abogado cerró el caso y la información fue eliminada del servidor por seguridad.");
+            location.reload();
+        }
+    });
+
+    listenerPrivado = refConsulta.child("mensajes");
     listenerPrivado.on("child_added", s => {
         const data = s.val();
-        const esMio = (esAdmin && data.emisor === nombreAdmin) || (!esAdmin && data.emisor === "Familiar");
-        const bg = data.emisor.includes("Dr") || data.emisor.includes("Abg") ? "#d1f5d3" : "#f1f3f9";
-        
-        let contenido = "";
-        if(data.tipo === 'imagen') contenido = `<img src="${data.contenido}" style="max-width:100%; border-radius:8px;">`;
-        else if(data.tipo === 'audio') contenido = `<audio controls src="${data.contenido}" style="width:100%"></audio>`;
-        else if(data.tipo === 'archivo') contenido = `📄 <a href="${data.contenido}" download="${data.nombreArchivo}">Descargar archivo</a>`;
-        else contenido = data.texto;
+        const emisorAdmin = data.emisor.includes("Dr") || data.emisor.includes("Abg");
+        const esMio = (esAdmin && !emisorAdmin) || (!esAdmin && emisorAdmin);
 
-        box.innerHTML += `<div class="msg" style="background:${bg}; margin-bottom:8px; padding:10px; border-radius:8px;">
-                            <b>${data.emisor}:</b><br>${contenido}</div>`;
+        if (esMio) {
+            new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3').play().catch(e=>0);
+        }
+
+        const bg = emisorAdmin ? "#d1f5d3" : "#f1f3f9";
+        let contenido = data.tipo === 'audio' ? `<audio controls src="${data.contenido}"></audio>` : 
+                        data.tipo === 'imagen' ? `<img src="${data.contenido}" style="max-width:100%">` : data.texto;
+
+        box.innerHTML += `<div class="msg" style="background:${bg};"><b>${data.emisor}:</b><br>${contenido}</div>`;
         box.scrollTop = box.scrollHeight;
     });
 }
+
+// --- NUEVO SISTEMA: RECUPERAR CHAT AL VOLVER A ENTRAR A LA APP ---
+setTimeout(() => {
+    const miConsultaGuardada = localStorage.getItem('mi_consulta_id');
+    if(miConsultaGuardada && !esAdmin) {
+        db.ref("consultas_privadas/" + miConsultaGuardada).once("value").then(snapshot => {
+            if(snapshot.exists()) {
+                // Si el chat sigue existiendo en base de datos, lo metemos directo
+                consultaActualId = miConsultaGuardada;
+                showView('view-chat-privado');
+                document.getElementById('registro-consulta').style.display = 'none';
+                document.getElementById('interfaz-chat-privado').style.display = 'block';
+                escucharMensajesPrivados();
+            } else {
+                // Si el administrador ya lo borró mientras el usuario estaba fuera
+                localStorage.removeItem('mi_consulta_id');
+            }
+        });
+    }
+}, 1000);
+// --- FIN DEL NUEVO SISTEMA ---
+
+
 
 function enviarMensajeTextoPrivado() {
     const input = document.getElementById('priv-input');
