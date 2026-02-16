@@ -1,4 +1,4 @@
-const CACHE_NAME = 'privados-legal-v1';
+const CACHE_NAME = 'privados-legal-v2';
 const urlsToCache = [
   './',
   './index.html'
