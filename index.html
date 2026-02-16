@@ -116,12 +116,14 @@
         </div>
 
 
-        <div class="nav-grid">
-            <div class="nav-item" onclick="showView('view-org')">🏛️ Organismos</div>
-            <div class="nav-item" onclick="showView('view-proceso')">⚖️ Academia</div>
-            <div class="nav-item" onclick="showView('view-videos')">🎥 Videos</div>
-            <div class="nav-item" onclick="showView('view-home')">🏠 Inicio</div>
+                      <div class="nav-grid">
+            <div class="nav-item" onclick="showView('view-org')">🏛️ Organismos e<br>Instituciones</div>
+            <div class="nav-item" onclick="showView('view-proceso')">⚖️ Conozca el<br>Proceso Penal</div>
+            <div class="nav-item" onclick="showView('view-videos')">💡 Tips para Familiares<br><span style="font-size: 0.8em; font-weight: normal;">de Privados de Libertad</span></div>
+            <div class="nav-item" onclick="showView('view-servicios')">💼 Publicidad y<br>Servicios</div>
         </div>
+
+
     </div>
 
     <div id="view-proceso" class="view">
@@ -135,17 +137,25 @@
         <div id="lista-proceso-dinamica"></div>
     </div>
 
-    <div id="view-org" class="view">
+        <div id="view-org" class="view">
         <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-        <h2>Sistema de Justicia</h2>
+        <h2 style="color: #00796b;">🏛️ Sistema de Justicia</h2>
         <div id="lista-organismos"></div>
     </div>
 
     <div id="view-videos" class="view">
         <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-        <h2>Videos Guía</h2>
-        <div class="card-juridica">Contenido multimedia en proceso...</div>
+        <h2 style="color: #f57f17;">💡 Tips para Familiares</h2>
+        <div id="lista-tips"></div>
     </div>
+
+    <div id="view-servicios" class="view">
+        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+        <h2 style="color: #1565c0;">💼 Directorio de Servicios</h2>
+        <p style="font-size:0.9em; color:#555; margin-top:-10px; margin-bottom:15px;">Servicios útiles de paquetería, almuerzos, encomiendas y traslados cerca de los centros de reclusión.</p>
+        <div id="lista-servicios"></div>
+    </div>
+
 
     <div id="admin-panel">
         <h3>Panel Administrador</h3>
@@ -157,6 +167,19 @@
         <input type="text" id="adm-org-tel" class="admin-input" placeholder="Teléfono/Dirección">
         <button onclick="guardarOrg()" style="width:100%; background:var(--primary); color:white; padding:10px; border:none; border-radius:5px;">Guardar Organismo</button>
         <hr>
+                <hr>
+        <h4 style="margin-bottom:5px; color:#f57f17;">💡 Publicar Tip para Familiares</h4>
+        <input type="text" id="adm-tip-tit" class="admin-input" placeholder="Título (ej. Horarios de Visita CPO)">
+        <textarea id="adm-tip-txt" class="admin-input" placeholder="Escribe el consejo o tip aquí..."></textarea>
+        <button onclick="guardarTip()" style="width:100%; background:#fbc02d; color:#333; padding:10px; border:none; border-radius:5px; font-weight:bold;">Guardar Tip</button>
+
+        <hr>
+        <h4 style="margin-bottom:5px; color:#1565c0;">💼 Publicar Servicio/Publicidad</h4>
+        <input type="text" id="adm-srv-nom" class="admin-input" placeholder="Nombre (ej. Inversiones María)">
+        <input type="text" id="adm-srv-desc" class="admin-input" placeholder="¿Qué ofrece? (ej. Almuerzos y traslados al penal)">
+        <input type="text" id="adm-srv-tel" class="admin-input" placeholder="WhatsApp del negocio (ej. 04141234567)">
+        <button onclick="guardarServicio()" style="width:100%; background:#1565c0; color:white; padding:10px; border:none; border-radius:5px;">Publicar Servicio</button>
+
         <h4 style="margin-bottom:5px; color:#00796b;">👥 Registrar Colegas al Equipo</h4>
         <input type="text" id="adm-abg-pin" class="admin-input" placeholder="Crear PIN (ej. 5678)">
         <input type="text" id="adm-abg-nom" class="admin-input" placeholder="Nombre (ej. Dra. Ana Silva)">
@@ -242,6 +265,15 @@
 </div>
 
         </div>
+    </div>
+</div>
+<div id="modal-articulo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; width:90%; max-height:85vh; border-radius:15px; overflow:hidden; display:flex; flex-direction:column; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        <div style="background:var(--purple); padding:15px; display:flex; justify-content:space-between; align-items:center; color:white;">
+            <h3 id="modal-titulo" style="margin:0; font-size:1.1em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:85%;"></h3>
+            <button onclick="cerrarModalArticulo()" style="background:none; border:none; color:white; font-size:1.8em; font-weight:bold; cursor:pointer; line-height:1;">&times;</button>
+        </div>
+        <div id="modal-texto" style="padding:20px; overflow-y:auto; text-align:justify; font-size:0.95em; line-height:1.6; color:#333;"></div>
     </div>
 </div>
 
@@ -596,16 +628,87 @@ function filtrar() {
     let val = document.getElementById('busqueda').value.toLowerCase(); 
     document.querySelectorAll('.card-juridica').forEach(c => c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none"); 
 }
+// ==========================================
+// FUNCIONES PARA GUARDAR DESDE EL ADMIN
+// ==========================================
 function guardarProc() { 
-    const t = document.getElementById('adm-proc-tit').value; 
-    const txt = document.getElementById('adm-proc-txt').value; 
-    if(t && txt) db.ref("proceso_penal").push({ titulo: t, texto: txt }).then(() => alert("Publicado")); 
+    const t = document.getElementById('adm-proc-tit'); const txt = document.getElementById('adm-proc-txt'); 
+    if(t.value && txt.value) db.ref("proceso_penal").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Clase publicada"); t.value=''; txt.value=''; }); 
 }
 function guardarOrg() { 
-    const n = document.getElementById('adm-org-nom').value; 
-    const i = document.getElementById('adm-org-tel').value; 
-    if(n && i) db.ref("organismos").push({ nombre: n, info: i }).then(() => alert("Guardado")); 
+    const n = document.getElementById('adm-org-nom'); const i = document.getElementById('adm-org-tel'); 
+    if(n.value && i.value) db.ref("organismos").push({ nombre: n.value, info: i.value }).then(() => { alert("Organismo guardado"); n.value=''; i.value=''; }); 
 }
+function guardarTip() { 
+    const t = document.getElementById('adm-tip-tit'); const txt = document.getElementById('adm-tip-txt'); 
+    if(t.value && txt.value) db.ref("tips_familiares").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Tip publicado"); t.value=''; txt.value=''; }); 
+}
+function guardarServicio() { 
+    const n = document.getElementById('adm-srv-nom'); const d = document.getElementById('adm-srv-desc'); const t = document.getElementById('adm-srv-tel');
+    if(n.value && d.value && t.value) db.ref("servicios").push({ nombre: n.value, desc: d.value, tel: t.value }).then(() => { alert("Servicio publicado"); n.value=''; d.value=''; t.value=''; }); 
+}
+
+// ==========================================
+// LECTORES AUTOMÁTICOS (MUESTRAN LA INFO AL USUARIO)
+// ==========================================
+// 1. Mostrar Academia
+// 1. Mostrar Academia (Proceso Penal) en Tarjetas Elegantes
+db.ref("proceso_penal").on("value", s => {
+    const box = document.getElementById("lista-proceso-dinamica"); box.innerHTML = "";
+    if(s.exists()) s.forEach(child => { 
+        const d = child.val(); 
+        
+        // Cortamos el texto para hacer el "extracto" (solo los primeros 120 caracteres)
+        const extracto = d.texto.length > 120 ? d.texto.substring(0, 120) + "..." : d.texto;
+        
+        // Codificamos el texto para evitar que las comillas rompan el código HTML
+        const tituloSeguro = encodeURIComponent(d.titulo);
+        const textoSeguro = encodeURIComponent(d.texto);
+
+        box.innerHTML += `
+        <div class="card-juridica" style="border-left: 5px solid var(--purple); padding: 15px; margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <span style="background:var(--purple); color:white; padding:4px 8px; border-radius:5px; font-size:0.7em; font-weight:bold;">TUTORIAL</span>
+            </div>
+            <h3 style="margin: 10px 0 5px 0; color: #333; font-size:1.1em;">${d.titulo}</h3>
+            <p style="font-size:0.85em; color:#666; font-style:italic; margin-bottom:15px;">"${extracto}"</p>
+            
+            <div style="display:flex; gap:10px;">
+                <button onclick="abrirModalArticulo('${tituloSeguro}', '${textoSeguro}')" style="background:var(--purple); color:white; border:none; padding:10px; border-radius:8px; flex:1; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer;">
+                    📖 LEER
+                </button>
+                <button onclick="compartirArticulo('${tituloSeguro}', '${textoSeguro}')" style="background:#25D366; color:white; border:none; padding:10px; border-radius:8px; flex:1; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer;">
+                    📲 COMPARTIR
+                </button>
+            </div>
+        </div>`; 
+    });
+});
+
+
+// 3. Mostrar Tips
+db.ref("tips_familiares").on("value", s => {
+    const box = document.getElementById("lista-tips"); box.innerHTML = "";
+    if(s.exists()) s.forEach(child => { const d = child.val(); box.innerHTML += `<div class="card-juridica" style="border-left-color:#fbc02d;"><h4 style="margin-top:0; color:#f57f17;">💡 ${d.titulo}</h4><p style="font-size:0.9em; text-align:justify;">${d.texto}</p></div>`; });
+});
+
+// 4. Mostrar Servicios y Publicidad (Con botón a WhatsApp)
+db.ref("servicios").on("value", s => {
+    const box = document.getElementById("lista-servicios"); box.innerHTML = "";
+    if(s.exists()) s.forEach(child => { 
+        const d = child.val(); 
+        const numWa = d.tel.replace(/\D/g,''); // Limpia el número
+        box.innerHTML += `
+        <div class="card-juridica" style="border-left-color:#1565c0;">
+            <h4 style="margin-top:0; color:#1565c0;">💼 ${d.nombre}</h4>
+            <p style="font-size:0.9em; margin-bottom:15px;">${d.desc}</p>
+            <a href="https://wa.me/${numWa}?text=Hola,%20vengo%20de%20la%20App%20SUEÑOS%20DE%20LIBERTAD%20y%20necesito%20su%20servicio." target="_blank" style="text-decoration:none; background:#25D366; color:white; padding:8px 15px; border-radius:5px; font-weight:bold; font-size:0.8em; display:inline-block;">
+                🟢 Contactar al Servicio
+            </a>
+        </div>`; 
+    });
+});
+
 function guardarAbogado() {
     const pin = document.getElementById('adm-abg-pin').value;
     const nom = document.getElementById('adm-abg-nom').value;
@@ -783,7 +886,44 @@ db.ref("chat_publico").limitToLast(20).on("child_added", s => {
         </div>`;
     box.scrollTop = box.scrollHeight;
 });
+// ==========================================
+// FUNCIONES DE LAS TARJETAS DE ACADEMIA
+// ==========================================
 
+function abrirModalArticulo(tituloCodificado, textoCodificado) {
+    // Decodificamos la información
+    const titulo = decodeURIComponent(tituloCodificado);
+    const texto = decodeURIComponent(textoCodificado);
+    
+    // Insertamos los datos en la ventana emergente
+    document.getElementById('modal-titulo').innerText = titulo;
+    // Convertimos los saltos de línea en <br> para que el texto respire y se vea bien
+    document.getElementById('modal-texto').innerHTML = texto.replace(/\n/g, '<br><br>');
+    
+    // Mostramos la ventana
+    document.getElementById('modal-articulo').style.display = 'flex';
+}
+
+function cerrarModalArticulo() {
+    document.getElementById('modal-articulo').style.display = 'none';
+}
+
+function compartirArticulo(tituloCodificado, textoCodificado) {
+    const titulo = decodeURIComponent(tituloCodificado);
+    const texto = decodeURIComponent(textoCodificado);
+    const textoParaEnviar = `*${titulo}*\n\n${texto}\n\n_Información vía App Privados - Sueños de Libertad_`;
+
+    // Usamos el menú nativo de compartir del celular (Funciona en Android e iOS)
+    if (navigator.share) {
+        navigator.share({
+            title: titulo,
+            text: textoParaEnviar
+        }).catch(err => console.log("Error al compartir:", err));
+    } else {
+        // Si están en una PC vieja, abrimos WhatsApp Web directamente
+        window.open(`https://wa.me/?text=${encodeURIComponent(textoParaEnviar)}`, '_blank');
+    }
+}
 </script>
 </body>
 </html>
