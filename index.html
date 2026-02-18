@@ -364,6 +364,36 @@ document.getElementById('main-header').onclick = () => {
 
 // 6. LÓGICA DE CONSULTA (CLIENTE)
 // 6. LÓGICA DE CONSULTA (CLIENTE)
+// --- NUEVA FUNCIÓN DE APOYO PARA TELEGRAM ---
+// --- FUNCIÓN DE ALERTA TELEGRAM CORREGIDA ---
+// --- FUNCIÓN DE ALERTA TELEGRAM CORREGIDA Y LIMPIA ---
+function enviarAlertaTelegram(cliente, motivo) {
+    const TELEGRAM_TOKEN = "8017218933:AAEyBytMfs9MQ4avkjquRR1gOuKp-K4RDk8";
+    const TELEGRAM_CHAT_ID = "8377293331"; 
+    
+    const texto = `🚨 *ALERTA APP*\n👤 Cliente: ${cliente}\n⚖️ Motivo: ${motivo}`;
+
+    fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(texto)}&parse_mode=Markdown`)
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                console.error("❌ ERROR TELEGRAM:", data.description);
+                alert("Error de Alerta: " + data.description); // Esto le avisará qué pasa exactamente
+            });
+        }
+        console.log("✅ Alerta enviada con éxito");
+    })
+    .catch(err => console.error("❌ Error de Red:", err));
+}
+
+
+
+
+
+
+
+
+// --- TU FUNCIÓN ORIGINAL PERO "POTENCIADA" ---
 function iniciarConsulta() {
     const nombre = document.getElementById('priv-nombre').value;
     const motivo = document.getElementById('priv-motivo').value;
@@ -372,17 +402,18 @@ function iniciarConsulta() {
         consultaActualId = "CONSULTA_" + Date.now();
         const ref = db.ref("consultas_privadas/" + consultaActualId);
         
-        // ELIMINADA LA INSTRUCCIÓN onDisconnect().remove() PARA QUE PERMANEZCA
-        
+        // 1. Guardar en Firebase (Igual que antes)
         ref.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "pendiente" });
 
-        // GUARDAMOS EL ID EN EL CELULAR DEL FAMILIAR PARA QUE PUEDA REGRESAR LUEGO
+        // 2. ALERTAR POR TELEGRAM (Esto es lo nuevo)
+        enviarAlertaTelegram(nombre, motivo);
+
+        // 3. Todo lo demás sigue igual (LocalStorage, Listeners y Vistas)
         localStorage.setItem('mi_consulta_id', consultaActualId);
 
-        // Si el abogado borra el caso, limpiamos la memoria y avisamos
         ref.on('value', snapshot => {
             if (!snapshot.exists()) {
-                localStorage.removeItem('mi_consulta_id'); // Borramos el rastro
+                localStorage.removeItem('mi_consulta_id');
                 alert("🔒 LA SESIÓN HA FINALIZADO: El chat y toda la información han sido destruidos por seguridad profesional.");
                 location.reload(); 
             }
@@ -392,9 +423,9 @@ function iniciarConsulta() {
         document.getElementById('interfaz-chat-privado').style.display = 'block';
         escucharMensajesPrivados();
 
-
     } else { alert("Complete los datos."); }
 }
+
 // 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
 // 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
 function activarMotorAdmin() {
@@ -496,31 +527,23 @@ function atenderConsulta(id) {
 function escucharMensajesPrivados() {
     const box = document.getElementById('private-messages');
     if (listenerPrivado) listenerPrivado.off();
-box.innerHTML = '';
+    box.innerHTML = '';
     const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
 
     // DETECTOR DE CIERRE DE SESIÓN SEGURO
     refConsulta.on('value', s => {
         if (!s.exists()) {
-            localStorage.removeItem('mi_consulta_id'); // Borrar rastro si el admin lo eliminó
+            localStorage.removeItem('mi_consulta_id'); 
             alert("⚠️ SESIÓN FINALIZADA: El abogado cerró el caso y la información fue eliminada del servidor por seguridad.");
             location.reload();
         } else {
-            // --- NUEVA LÓGICA: ACTUALIZAR BOTÓN WHATSAPP AQUÍ ---
             const data = s.val();
-            // Si ya hay un abogado asignado y soy el cliente, actualizo el botón
             if(data && data.abogadoNombre && !esAdmin) {
                 document.getElementById('titulo-abogado').innerHTML = `🤝 Caso asignado a: <b>${data.abogadoNombre}</b>`;
                 const btnWa = document.getElementById('btn-salto-wa');
-                
-                // Extraemos solo los números del teléfono por seguridad
                 const telefono = data.abogadoTelefono ? data.abogadoTelefono.replace(/\D/g,'') : ""; 
                 const msj = encodeURIComponent(`*CONSULTA PRIVADA*\nHola ${data.abogadoNombre}, soy ${data.cliente}. Caso: ${data.motivo}`);
-                
-                // Armamos el enlace
                 btnWa.href = `https://wa.me/${telefono}?text=${msj}`;
-                
-                // Cambiamos el color visual del botón
                 const btnVisual = btnWa.querySelector('button');
                 btnVisual.innerText = `🟢 CONTACTAR A ${data.abogadoNombre.toUpperCase()}`;
                 btnVisual.style.background = "#25D366";
@@ -532,6 +555,15 @@ box.innerHTML = '';
     listenerPrivado.on("child_added", s => {
         const data = s.val();
         const emisorAdmin = data.emisor.includes("Dr") || data.emisor.includes("Abg");
+
+        // --- LÓGICA DE ALERTA TELEGRAM INCORPORADA ---
+        // Si el mensaje NO viene de un administrador y NO soy yo (admin) viendo el chat, alertamos.
+        if (!emisorAdmin && !esAdmin) {
+            const resumen = data.tipo === 'texto' ? data.texto : `Envió un ${data.tipo}`;
+            enviarAlertaTelegram(`MENSAJE DE CLIENTE`, resumen);
+        }
+        // --------------------------------------------
+
         const esMio = (esAdmin && !emisorAdmin) || (!esAdmin && emisorAdmin);
 
         if (esMio) {
@@ -547,25 +579,6 @@ box.innerHTML = '';
     });
 }
 
-// --- NUEVO SISTEMA: RECUPERAR CHAT AL VOLVER A ENTRAR A LA APP ---
-setTimeout(() => {
-    const miConsultaGuardada = localStorage.getItem('mi_consulta_id');
-    if(miConsultaGuardada && !esAdmin) {
-        db.ref("consultas_privadas/" + miConsultaGuardada).once("value").then(snapshot => {
-            if(snapshot.exists()) {
-                // Si el chat sigue existiendo en base de datos, lo metemos directo
-                consultaActualId = miConsultaGuardada;
-                showView('view-chat-privado');
-                document.getElementById('registro-consulta').style.display = 'none';
-                document.getElementById('interfaz-chat-privado').style.display = 'block';
-                escucharMensajesPrivados();
-            } else {
-                // Si el administrador ya lo borró mientras el usuario estaba fuera
-                localStorage.removeItem('mi_consulta_id');
-            }
-        });
-    }
-}, 1000);
 // --- FIN DEL NUEVO SISTEMA ---
 
 
