@@ -70,34 +70,6 @@
     <p>Orientación jurídica gratuita para familiares de detenidos en toda Venezuela.</p>
 </header>
 
-<div class="container">
-    <div id="view-home" class="view active-view">
-        <div class="chat-container">
-    <div style="background: #e3f2fd; border-left: 4px solid #1a237e; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
-        <h3 style="margin: 0 0 5px 0; color: #1a237e; font-size: 1.1em; display: flex; align-items: center; gap: 5px;">
-            💬 Sala de Apoyo Mutuo (Pública)
-        </h3>
-        <p style="margin: 0; color: #444; font-size: 0.85em; line-height: 1.4; text-align: justify;">
-            Este es un espacio comunitario para conversar con otras familias y resolver dudas jurídicas <b>generales</b>. 
-            <br><br>
-            <span style="color: #c62828; font-weight: bold;">⚠️ Importante:</span> Al ser un chat grupal, <b>no comparta nombres reales, números de expediente ni datos personales</b>. Para atención confidencial, use la "Consulta Privada" más abajo.
-        </p>
-    </div>
-
-    <div id="public-messages" style="height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px; background: #fafafa; margin-bottom: 10px;"></div>
-    
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-        <input type="text" id="chat-input" style="width: 93%; padding:10px; border: 1px solid #ccc; border-radius: 5px;" placeholder="Escribe un mensaje al grupo...">
-        
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="file" id="pub-file-upload" style="display: none;" onchange="procesarArchivoPublico(event)" accept="image/*">
-            <label for="pub-file-upload" style="background: #e0e0e0; padding: 10px; border-radius: 8px; cursor: pointer; flex: 0.5; text-align: center;">📎</label>
-            <button id="btn-mic-publico" style="background: #e0e0e0; border: none; padding: 10px; border-radius: 8px; flex: 0.5; cursor: pointer;" onclick="toggleMicPublico()">🎤</button>
-            <button onclick="enviarMensajePublico()" style="background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; flex: 2; font-weight: bold;">ENVIAR</button>
-        </div>
-    </div>
-</div>
-
 
                 <div class="hook-card" style="position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(26,35,126,0.4);">
             <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%); pointer-events: none;"></div>
@@ -208,7 +180,6 @@
 
     <div id="view-chat-privado" class="view">
         <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-        <div class="chat-container" style="border-top: 5px solid var(--accent);">
             <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
             <div id="registro-consulta">
                 <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
@@ -769,139 +740,9 @@ function borrarCasoSeguro(id) {
 // ==========================================
 
 // 1. LIMPIEZA AUTOMÁTICA DE 48 HORAS
-function limpiarChatPublicoViejo() {
-    const limite48Horas = Date.now() - (48 * 60 * 60 * 1000); // 48 horas en milisegundos
-    db.ref("chat_publico").orderByChild("timestamp").endAt(limite48Horas).once("value", snapshot => {
-        if(snapshot.exists()) {
-            snapshot.forEach(mensajeViejo => {
-                mensajeViejo.ref.remove(); // Destruye el mensaje de Firebase
-            });
-            console.log("Chat público limpiado de mensajes antiguos.");
-        }
-    });
-}
 
-// Ejecutamos la limpieza cada vez que alguien abre la aplicación
-limpiarChatPublicoViejo();
 
-// 2. ENVIAR MENSAJE DE TEXTO
-function enviarMensajePublico() {
-    const msg = document.getElementById('chat-input').value;
-    if(msg.trim()) { 
-        db.ref("chat_publico").push({ 
-            user: esAdmin ? nombreAdmin : "Familiar", 
-            texto: msg, 
-            tipo: "texto",
-            timestamp: Date.now() 
-        }); 
-        document.getElementById('chat-input').value = ""; 
-    }
-}
 
-// 3. ENVIAR NOTA DE VOZ (GEMELA)
-let grabandoPublico = false;
-async function toggleMicPublico() {
-    const btn = document.getElementById('btn-mic-publico');
-    if (!grabandoPublico) {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    db.ref("chat_publico").push({
-                        user: esAdmin ? nombreAdmin : "Familiar",
-                        tipo: "audio", 
-                        contenido: e.target.result,
-                        timestamp: Date.now()
-                    });
-                };
-                reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
-            };
-            mediaRecorder.start(); 
-            grabandoPublico = true;
-            btn.innerHTML = "⏹️"; btn.style.background = "#ffcdd2";
-        } catch (err) { alert("Permiso de micrófono denegado."); }
-    } else { 
-        mediaRecorder.stop(); 
-        grabandoPublico = false; 
-        btn.innerHTML = "🎤"; btn.style.background = "#e0e0e0"; 
-    }
-}
-
-// 4. ENVIAR FOTO COMPRIMIDA (GEMELA)
-function procesarArchivoPublico(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                // Compresor para que Firebase no colapse
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; const MAX_HEIGHT = 800;
-                let width = img.width; let height = img.height;
-
-                if (width > height) {
-                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                } else {
-                    if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                }
-
-                canvas.width = width; canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // 60% de calidad
-
-                db.ref("chat_publico").push({
-                    user: esAdmin ? nombreAdmin : "Familiar",
-                    tipo: "imagen", 
-                    contenido: dataUrl, 
-                    timestamp: Date.now()
-                });
-            }
-            img.src = e.target.result;
-        }
-        reader.readAsDataURL(file);
-    } else {
-        alert("En el chat público solo se permiten imágenes y audios.");
-    }
-}
-
-// 5. ESCUCHAR Y DIBUJAR LOS MENSAJES (Sabiendo interpretar texto, audio y foto)
-db.ref("chat_publico").limitToLast(20).on("child_added", s => {
-    const data = s.val();
-    const box = document.getElementById("public-messages");
-    
-    let contenidoVisual = data.texto; // Por defecto asumimos que es texto
-    
-    if (data.tipo === 'audio') {
-        contenidoVisual = `<audio controls src="${data.contenido}" style="max-width:100%; height:40px; margin-top:5px;"></audio>`;
-    } else if (data.tipo === 'imagen') {
-        contenidoVisual = `<img src="${data.contenido}" style="max-width:100%; border-radius:8px; margin-top:5px;">`;
-    } else if (data.text) { 
-        // Por si quedan mensajes viejos guardados con tu formato anterior
-        contenidoVisual = data.text; 
-    }
-
-    const esAdminMsg = data.user.includes("Dr") || data.user.includes("Abg");
-    const colorNombre = esAdminMsg ? "var(--primary)" : "#555";
-    const fondoMsg = esAdminMsg ? "#e3f2fd" : "#fff"; // Mensajes de admin resaltan en azul claro
-
-    box.innerHTML += `
-        <div class="msg" style="background:${fondoMsg}; border:1px solid #e0e0e0; margin-bottom:8px; padding:10px; border-radius:8px;">
-            <b style="color:${colorNombre}; font-size:0.9em;">${data.user}:</b><br>
-            <span style="font-size:0.95em;">${contenidoVisual}</span>
-        </div>`;
-    box.scrollTop = box.scrollHeight;
-});
-// ==========================================
-// FUNCIONES DE LAS TARJETAS DE ACADEMIA
-// ==========================================
 
 function abrirModalArticulo(tituloCodificado, textoCodificado) {
     // Decodificamos la información
