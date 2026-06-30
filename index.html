@@ -69,7 +69,7 @@
     <h1>SUEÑOS DE LIBERTAD</h1>
     <p>Orientación jurídica gratuita para familiares de detenidos en toda Venezuela.</p>
 </header>
-
+<div id="view-home" class="view active-view">
 <div class="hook-card" style="position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(26,35,126,0.4); z-index: 10;">
     <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%); pointer-events: none;"></div>
     
@@ -85,7 +85,6 @@
         🔒 HABLAR CON UN ABOGADO AHORA
     </button>
 </div>
-
                       <div class="nav-grid">
             <div class="nav-item" onclick="showView('view-org')">🏛️ Organismos e<br>Instituciones</div>
             <div class="nav-item" onclick="showView('view-proceso')">⚖️ Conozca el<br>Proceso Penal</div>
@@ -126,6 +125,35 @@
         <div id="lista-servicios"></div>
     </div>
 
+    <div id="view-chat-privado" class="view">
+        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+            <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
+            <div id="registro-consulta">
+                <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
+               <select id="priv-motivo" class="admin-input">
+    <option value="">¿Motivo de la consulta?</option>
+    <option value="Familiar recién detenido">Tengo un familiar recién detenido</option>
+    <option value="Familiar detenido hace tiempo">Tengo un familiar detenido hace tiempo</option>
+    <option value="Situación jurídica">Quiero conocer situación jurídica</option>
+    <option value="Dejar sin efecto captura">Quiero dejar sin efecto una captura</option>
+    <option value="Tramitar redenciones">Quiero tramitar redenciones de pena</option>
+    <option value="Acceder a beneficio">Quiero acceder a un beneficio</option>
+    <option value="Antecedentes penales">Quiero tramitar antecedentes penales</option>
+    <option value="No presentación UTSO/CRS">No me he presentado en tribunales ni en la UTSO ni en el CRS</option>
+    <option value="Necesito abogado audiencia">Necesito un abogado para una audiencia de presentación, preliminar o juicio</option>
+    <option value="Información de familiar">Necesito información sobre un familiar detenido</option>
+    <option value="Otros motivos">Otros motivos</option>
+</select>
+
+                <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
+                <div style="margin-top: 20px; background: #f8f9fa; border-left: 4px solid #1a237e; padding: 15px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <p style="margin: 0 0 8px 0; color: #1a237e; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+        🔒 Garantía de Confidencialidad Absoluta
+    </p>
+    <p style="margin: 0; color: #555; font-size: 0.8em; line-height: 1.5; text-align: justify;">
+        Al iniciar, entrará a un canal completamente confidencial. En estricto cumplimiento del <b>Secreto Profesional</b>, cuando el abogado cierre la sesión toda la conversación, audios, imágenes y documentos se <b>destruirán automáticamente</b> de la base de datos y de su celular, sin dejar rastro alguno.
+    </p>
+</div>
 
     <div id="admin-panel">
         <h3>Panel Administrador</h3>
@@ -176,39 +204,8 @@
 
     </div>
 
-    <div id="view-chat-privado" class="view">
-        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-            <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
-            <div id="registro-consulta">
-                <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
-               <select id="priv-motivo" class="admin-input">
-    <option value="">¿Motivo de la consulta?</option>
-    <option value="Familiar recién detenido">Tengo un familiar recién detenido</option>
-    <option value="Familiar detenido hace tiempo">Tengo un familiar detenido hace tiempo</option>
-    <option value="Situación jurídica">Quiero conocer situación jurídica</option>
-    <option value="Dejar sin efecto captura">Quiero dejar sin efecto una captura</option>
-    <option value="Tramitar redenciones">Quiero tramitar redenciones de pena</option>
-    <option value="Acceder a beneficio">Quiero acceder a un beneficio</option>
-    <option value="Antecedentes penales">Quiero tramitar antecedentes penales</option>
-    <option value="No presentación UTSO/CRS">No me he presentado en tribunales ni en la UTSO ni en el CRS</option>
-    <option value="Necesito abogado audiencia">Necesito un abogado para una audiencia de presentación, preliminar o juicio</option>
-    <option value="Información de familiar">Necesito información sobre un familiar detenido</option>
-    <option value="Otros motivos">Otros motivos</option>
-</select>
 
-                <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
-                <div style="margin-top: 20px; background: #f8f9fa; border-left: 4px solid #1a237e; padding: 15px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-    <p style="margin: 0 0 8px 0; color: #1a237e; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; gap: 5px;">
-        🔒 Garantía de Confidencialidad Absoluta
-    </p>
-    <p style="margin: 0; color: #555; font-size: 0.8em; line-height: 1.5; text-align: justify;">
-        Al iniciar, entrará a un canal completamente confidencial. En estricto cumplimiento del <b>Secreto Profesional</b>, cuando el abogado cierre la sesión toda la conversación, audios, imágenes y documentos se <b>destruirán automáticamente</b> de la base de datos y de su celular, sin dejar rastro alguno.
-    </p>
-</div>
-
-            </div>
-
-            <div id="interfaz-chat-privado" style="display:none;">
+            <div id="interfaz-chat-privado" >
 <div id="private-messages" style="height: 300px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px; position: relative;">
   
 </div>
@@ -363,37 +360,7 @@ function enviarAlertaTelegram(cliente, motivo) {
 
 
 // --- TU FUNCIÓN ORIGINAL PERO "POTENCIADA" ---
-function iniciarConsulta() {
-    const nombre = document.getElementById('priv-nombre').value;
-    const motivo = document.getElementById('priv-motivo').value;
-    
-    if(nombre && motivo) {
-        consultaActualId = "CONSULTA_" + Date.now();
-        const ref = db.ref("consultas_privadas/" + consultaActualId);
-        
-        // 1. Guardar en Firebase (Igual que antes)
-        ref.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "pendiente" });
 
-        // 2. ALERTAR POR TELEGRAM (Esto es lo nuevo)
-        enviarAlertaTelegram(nombre, motivo);
-
-        // 3. Todo lo demás sigue igual (LocalStorage, Listeners y Vistas)
-        localStorage.setItem('mi_consulta_id', consultaActualId);
-
-        ref.on('value', snapshot => {
-            if (!snapshot.exists()) {
-                localStorage.removeItem('mi_consulta_id');
-                alert("🔒 LA SESIÓN HA FINALIZADO: El chat y toda la información han sido destruidos por seguridad profesional.");
-                location.reload(); 
-            }
-        });
-
-        document.getElementById('registro-consulta').style.display = 'none';
-        document.getElementById('interfaz-chat-privado').style.display = 'block';
-        escucharMensajesPrivados();
-
-    } else { alert("Complete los datos."); }
-}
 
 // 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
 // 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
@@ -474,7 +441,66 @@ function activarMotorAdmin() {
         }
     });
 }
+function iniciarConsulta() {
+    const nombre = document.getElementById('priv-nombre').value;
+    const motivo = document.getElementById('priv-motivo').value;
+    
+    // 1. Validar que los campos no estén vacíos
+    if(nombre.trim() === "" || motivo === "") {
+        alert("Por favor, complete su nombre y el motivo de la consulta.");
+        return; // Detiene la ejecución si falta algo
+    }
+    
+    // 2. Verificar si ya existe una consulta activa en la memoria del navegador
+    const sesionPrevia = localStorage.getItem('mi_consulta_id');
+    if (sesionPrevia) {
+        if (!confirm("Ya tiene una consulta iniciada. ¿Desea continuar con la anterior?")) {
+            // Si elige no continuar, puedes limpiar el storage o simplemente retornar
+            return;
+        }
+        consultaActualId = sesionPrevia;
+    } else {
+        consultaActualId = "CONSULTA_" + Date.now();
+    }
+    
+    const ref = db.ref("consultas_privadas/" + consultaActualId);
+    
+    // 3. Si es una nueva consulta, la guardamos
+    if (!sesionPrevia) {
+        ref.set({ 
+            cliente: nombre, 
+            motivo: motivo, 
+            timestamp: Date.now(), 
+            estado: "pendiente" 
+        });
+        enviarAlertaTelegram(nombre, motivo);
+        localStorage.setItem('mi_consulta_id', consultaActualId);
+    }
 
+// 4. Lógica de UI (Cambio sugerido)
+// Ocultamos el registro eliminando su clase activa
+document.getElementById('registro-consulta').classList.remove('active-view');
+document.getElementById('registro-consulta').style.display = 'none';
+
+// Activamos la vista del chat añadiendo la clase 'active-view'
+// Esto hará que automáticamente tome el display: block definido en tu CSS (línea 37)
+document.getElementById('view-chat-privado').classList.add('active-view');
+document.getElementById('view-chat-privado').style.display = 'block';
+
+// Aseguramos que la interfaz interna sea visible
+document.getElementById('interfaz-chat-privado').style.display = 'block';
+
+    // 5. Escuchar cambios
+    ref.on('value', snapshot => {
+        if (!snapshot.exists()) {
+            localStorage.removeItem('mi_consulta_id');
+            alert("🔒 LA SESIÓN HA FINALIZADO: El chat y toda la información han sido destruidos por seguridad profesional.");
+            location.reload(); 
+        }
+    });
+
+    escucharMensajesPrivados();
+}
 
 function atenderConsulta(id) {
     db.ref("consultas_privadas/" + id).update({
