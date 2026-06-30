@@ -445,29 +445,24 @@ function iniciarConsulta() {
     const nombre = document.getElementById('priv-nombre').value;
     const motivo = document.getElementById('priv-motivo').value;
     
-    // 1. Validar que los campos no estén vacíos
+    // 1. Validar campos
     if(nombre.trim() === "" || motivo === "") {
         alert("Por favor, complete su nombre y el motivo de la consulta.");
-        return; // Detiene la ejecución si falta algo
+        return; 
     }
     
-    // 2. Verificar si ya existe una consulta activa en la memoria del navegador
+    // 2. Gestionar ID de consulta
     const sesionPrevia = localStorage.getItem('mi_consulta_id');
     if (sesionPrevia) {
-        if (!confirm("Ya tiene una consulta iniciada. ¿Desea continuar con la anterior?")) {
-            // Si elige no continuar, puedes limpiar el storage o simplemente retornar
-            return;
-        }
+        if (!confirm("Ya tiene una consulta iniciada. ¿Desea continuar?")) return;
         consultaActualId = sesionPrevia;
     } else {
         consultaActualId = "CONSULTA_" + Date.now();
     }
     
-    const ref = db.ref("consultas_privadas/" + consultaActualId);
-    
-    // 3. Si es una nueva consulta, la guardamos
+    // 3. Guardar en Firebase si es nueva
     if (!sesionPrevia) {
-        ref.set({ 
+        db.ref("consultas_privadas/" + consultaActualId).set({ 
             cliente: nombre, 
             motivo: motivo, 
             timestamp: Date.now(), 
@@ -477,30 +472,33 @@ function iniciarConsulta() {
         localStorage.setItem('mi_consulta_id', consultaActualId);
     }
 
-// 4. Lógica de UI (Cambio sugerido)
-// Ocultamos el registro eliminando su clase activa
-document.getElementById('registro-consulta').classList.remove('active-view');
-document.getElementById('registro-consulta').style.display = 'none';
+    // 4. CORRECCIÓN DE VISIBILIDAD (Aseguramos que el contenedor sea visible)
+    // Ocultamos el registro limpiamente
+    const registro = document.getElementById('registro-consulta');
+    registro.style.display = 'none'; 
+    registro.classList.remove('active-view');
 
-// Activamos la vista del chat añadiendo la clase 'active-view'
-// Esto hará que automáticamente tome el display: block definido en tu CSS (línea 37)
-document.getElementById('view-chat-privado').classList.add('active-view');
-document.getElementById('view-chat-privado').style.display = 'block';
+    // Mostramos el contenedor padre del chat y la interfaz interna
+    const contenedorChat = document.getElementById('view-chat-privado');
+    contenedorChat.style.display = 'block'; // Forzamos el display
+    contenedorChat.classList.add('active-view');
 
-// Aseguramos que la interfaz interna sea visible
-document.getElementById('interfaz-chat-privado').style.display = 'block';
+    const interfazChat = document.getElementById('interfaz-chat-privado');
+    interfazChat.style.display = 'block'; // Forzamos el display interno
 
-    // 5. Escuchar cambios
+    // 5. Escuchar cambios y cargar chat
+    ref = db.ref("consultas_privadas/" + consultaActualId);
     ref.on('value', snapshot => {
         if (!snapshot.exists()) {
             localStorage.removeItem('mi_consulta_id');
-            alert("🔒 LA SESIÓN HA FINALIZADO: El chat y toda la información han sido destruidos por seguridad profesional.");
+            alert("🔒 La sesión ha finalizado.");
             location.reload(); 
         }
     });
 
     escucharMensajesPrivados();
 }
+
 
 function atenderConsulta(id) {
     db.ref("consultas_privadas/" + id).update({
