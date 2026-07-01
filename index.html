@@ -323,7 +323,7 @@ function iniciarConsulta() {
     if(nombre && motivo) {
         consultaActualId = "CONSULTA_" + Date.now();
         const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
-        refConsulta.onDisconnect().remove(); 
+       // refConsulta.onDisconnect().remove(); 
         refConsulta.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "pendiente" });
         // --- CORRECCIÓN AQUÍ ---
         document.getElementById('registro-consulta').style.display = 'none';
@@ -365,7 +365,7 @@ function escucharMensajesPrivados() {
         const emisorAdmin = data.emisor.includes("Dr") || data.emisor.includes("Abg");
         if (!emisorAdmin && !esAdmin) enviarAlertaTelegram(`MENSAJE`, data.texto);
         const bg = ( (esAdmin && !emisorAdmin) || (!esAdmin && emisorAdmin) ) ? "#d1f5d3" : "#f1f3f9";
-        let contenido = data.tipo === 'audio' ? `<audio controls src="${data.contenido}"></audio>` : (data.tipo === 'imagen' ? `<img src="${data.contenido}" style="max-width:100%">` : data.texto);
+        let contenido = data.tipo === 'audio' ? `<audio controls controlsList="nodownload" oncontextmenu="return false;" src="${data.contenido}"></audio>` : (data.tipo === 'imagen' ? `<img src="${data.contenido}" style="max-width:100%">` : data.texto);
         box.innerHTML += `<div class="msg" style="background:${bg};"><b>${data.emisor}:</b><br>${contenido}</div>`;
         box.scrollTop = box.scrollHeight;
     });
