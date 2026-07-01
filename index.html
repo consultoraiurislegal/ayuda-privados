@@ -121,7 +121,7 @@
     <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
     
     <div id="registro-consulta">
-        <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
+        <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo / Seudonimo /Alias">
         <select id="priv-motivo" class="admin-input">
             <option value="">¿Motivo de la consulta?</option>
             <option value="Familiar recién detenido">Tengo un familiar recién detenido</option>
@@ -320,27 +320,40 @@ function activarMotorAdmin() {
 function iniciarConsulta() {
     const nombre = document.getElementById('priv-nombre').value;
     const motivo = document.getElementById('priv-motivo').value;
-    if(nombre && motivo) {
+    
+    // Intentamos recuperar un ID existente en memoria local
+    let idGuardado = localStorage.getItem('id_consulta_activa');
+    
+    if(idGuardado) {
+        consultaActualId = idGuardado;
+    } else if(nombre && motivo) {
         consultaActualId = "CONSULTA_" + Date.now();
+        localStorage.setItem('id_consulta_activa', consultaActualId); // Guardamos el ID de forma persistente
+        
         const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
-       // refConsulta.onDisconnect().remove(); 
         refConsulta.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "pendiente" });
-        // --- CORRECCIÓN AQUÍ ---
-        document.getElementById('registro-consulta').style.display = 'none';
-        document.getElementById('interfaz-chat-privado').style.display = 'block';
-        // -----------------------
-        refConsulta.on("value", s => {
-            const data = s.val();
-            if(data && data.abogadoNombre && data.abogadoTelefono) {
-                document.getElementById('titulo-abogado').innerHTML = `🤝 Su caso fue asignado a: <b>${data.abogadoNombre}</b>`;
-                const btnWa = document.getElementById('btn-salto-wa');
-                btnWa.href = `https://wa.me/${data.abogadoTelefono}?text=Hola%20${data.abogadoNombre},%20vengo%20de%20la%20App%20Privados.%20Soy%20${data.cliente},%20le%20escribo%20por%20un%20caso%20de%20${data.motivo}.`;
-                btnWa.innerText = `IR AL WHATSAPP DE ${data.abogadoNombre.toUpperCase()}`;
-            }
-        });
-        escucharMensajesPrivados();
-    } else { alert("Por favor, complete sus datos."); }
+    } else {
+        alert("Por favor, complete sus datos.");
+        return;
+    }
+
+    // --- INTERFAZ Y ESCUCHA ---
+    document.getElementById('registro-consulta').style.display = 'none';
+    document.getElementById('interfaz-chat-privado').style.display = 'block';
+
+    const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
+    refConsulta.on("value", s => {
+        const data = s.val();
+        if(data && data.abogadoNombre && data.abogadoTelefono) {
+            document.getElementById('titulo-abogado').innerHTML = `🤝 Su caso fue asignado a: <b>${data.abogadoNombre}</b>`;
+            const btnWa = document.getElementById('btn-salto-wa');
+            btnWa.href = `https://wa.me/${data.abogadoTelefono}?text=Hola%20${data.abogadoNombre},%20vengo%20de%20la%20App%20Privados.%20Soy%20${data.cliente},%20le%20escribo%20por%20un%20caso%20de%20${data.motivo}.`;
+            btnWa.innerText = `IR AL WHATSAPP DE ${data.abogadoNombre.toUpperCase()}`;
+        }
+    });
+    escucharMensajesPrivados();
 }
+
 
 function atenderConsulta(id) {
     db.ref("consultas_privadas/" + id).update({ estado: "atendiendo", abogadoNombre: nombreAdmin, abogadoTelefono: telefonoAdmin });
@@ -357,8 +370,13 @@ function escucharMensajesPrivados() {
     box.innerHTML = '';
     const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
     refConsulta.on('value', s => {
-        if (!s.exists()) { alert("⚠️ SESIÓN FINALIZADA."); location.reload(); }
-    });
+    if (!s.exists()) { 
+        localStorage.removeItem('id_consulta_activa'); // Limpiamos el guardado
+        alert("⚠️ El chat ha sido cerrado."); 
+        location.reload(); 
+    }
+});
+
     listenerPrivado = refConsulta.child("mensajes");
     listenerPrivado.on("child_added", s => {
         const data = s.val();
@@ -417,7 +435,13 @@ function guardarServicio() { const n = document.getElementById('adm-srv-nom'); c
 function guardarAbogado() { const pin = document.getElementById('adm-abg-pin').value; const nom = document.getElementById('adm-abg-nom').value; const tel = document.getElementById('adm-abg-tel').value; if(pin && nom && tel) { db.ref("equipo_legal/" + pin).set({ nombre: nom, telefono: tel }); alert("Colega registrado."); } }
 function cerrarSesionAdmin() { localStorage.removeItem('admin_activo'); location.reload(); }
 function eliminarTodoSeguro() { if (confirm("¿Seguro?")) db.ref("consultas_privadas").remove(); }
-function borrarCasoSeguro(id) { db.ref("consultas_privadas/" + id).remove(); }
+function borrarCasoSeguro(id) {
+    db.ref("consultas_privadas/" + id).remove().then(() => {
+        // Esto le avisará a la app del cliente que debe limpiarse
+        alert("Caso eliminado.");
+    });
+}
+
 function abrirModalArticulo(tit, txt) { document.getElementById('modal-titulo').innerText = decodeURIComponent(tit); document.getElementById('modal-texto').innerHTML = decodeURIComponent(txt).replace(/\n/g, '<br><br>'); document.getElementById('modal-articulo').style.display = 'flex'; }
 function cerrarModalArticulo() { document.getElementById('modal-articulo').style.display = 'none'; }
 function compartirArticulo(tit, txt) { if (navigator.share) navigator.share({ title: decodeURIComponent(tit), text: decodeURIComponent(txt) }); else window.open(`https://wa.me/?text=${encodeURIComponent(decodeURIComponent(tit))}`, '_blank'); }
@@ -425,6 +449,18 @@ function compartirArticulo(tit, txt) { if (navigator.share) navigator.share({ ti
 db.ref("proceso_penal").on("value", s => { const box = document.getElementById("lista-proceso-dinamica"); box.innerHTML = ""; if(s.exists()) s.forEach(c => { const d = c.val(); box.innerHTML += `<div class="card-juridica"><h3>${d.titulo}</h3><button onclick="abrirModalArticulo('${encodeURIComponent(d.titulo)}','${encodeURIComponent(d.texto)}')">LEER</button></div>`; }); });
 db.ref("tips_familiares").on("value", s => { const box = document.getElementById("lista-tips"); box.innerHTML = ""; if(s.exists()) s.forEach(c => { const d = c.val(); box.innerHTML += `<div class="card-juridica"><h4>💡 ${d.titulo}</h4><p>${d.texto}</p></div>`; }); });
 db.ref("servicios").on("value", s => { const box = document.getElementById("lista-servicios"); box.innerHTML = ""; if(s.exists()) s.forEach(c => { const d = c.val(); box.innerHTML += `<div class="card-juridica"><h4>💼 ${d.nombre}</h4><p>${d.desc}</p><a href="https://wa.me/${d.tel.replace(/\D/g,'')}">Contactar</a></div>`; }); });
+
+// Al cargar la página, verificamos si hay un chat pendiente
+window.onload = () => {
+    const idGuardado = localStorage.getItem('id_consulta_activa');
+    if(idGuardado) {
+        consultaActualId = idGuardado;
+        document.getElementById('registro-consulta').style.display = 'none';
+        document.getElementById('interfaz-chat-privado').style.display = 'block';
+        escucharMensajesPrivados();
+    }
+};
+
 </script>
 </body>
 </html>
