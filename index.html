@@ -21,7 +21,6 @@
     background-repeat: no-repeat;
     
     color: white;
-    /* REDUJIMOS EL ESPACIO DE 50px A 25px */
     padding: 25px 20px; 
     text-align: center;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
@@ -42,16 +41,12 @@
         .academia-header { background: #fff; border: 1px solid #e1bee7; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
         .search-box input { width: 93%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; }
         .card-juridica { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid var(--purple); }
-        .tag-tutorial { background: #673ab7; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; }
-        .author-info { font-size: 0.75em; color: #666; margin: 10px 0; }
-        .card-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 15px; }
-        .btn-action { border: none; padding: 8px; border-radius: 5px; color: white; font-size: 0.65em; font-weight: bold; }
         .chat-container { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .msg { margin-bottom: 8px; padding: 8px; background: #f1f3f9; border-radius: 8px; font-size: 0.9em; }
         #admin-panel { display: none; background: #fff3cd; padding: 15px; border-radius: 15px; border: 2px dashed #ffeeba; margin-top: 20px; }
         .admin-input { width: 92%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-                /* Animación de latido para el botón principal */
+                
         @keyframes latido {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
             50% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(37, 211, 102, 0); }
@@ -69,91 +64,103 @@
     <h1>SUEÑOS DE LIBERTAD</h1>
     <p>Orientación jurídica gratuita para familiares de detenidos en toda Venezuela.</p>
 </header>
+
 <div id="view-home" class="view active-view">
-<div class="hook-card" style="position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(26,35,126,0.4); z-index: 10;">
-    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%); pointer-events: none;"></div>
-    
-    <h3 style="margin-top: 0; font-size: 1.3em; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-        🛡️ Análisis de Caso: Privado y Gratuito
-    </h3>
-    
-    <p style="font-size: 0.95em; line-height: 1.5; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
-        No enfrente este proceso judicial a ciegas. Obtenga una evaluación experta sobre el estado de su familiar.
-    </p>
-    
-    <button onclick="showView('view-chat-privado')" class="btn-private btn-latido" style="position: relative; z-index: 20; font-size: 1.05em; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
-        🔒 HABLAR CON UN ABOGADO AHORA
-    </button>
+    <div class="hook-card" style="position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(26,35,126,0.4); z-index: 10;">
+        <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%); pointer-events: none;"></div>
+        <h3 style="margin-top: 0; font-size: 1.3em; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+            🛡️ Análisis de Caso: Privado y Gratuito
+        </h3>
+        <p style="font-size: 0.95em; line-height: 1.5; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+            No enfrente este proceso judicial a ciegas. Obtenga una evaluación experta sobre el estado de su familiar.
+        </p>
+        <button onclick="showView('view-chat-privado')" class="btn-private btn-latido" style="position: relative; z-index: 20; font-size: 1.05em; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+            🔒 HABLAR CON UN ABOGADO AHORA
+        </button>
+    </div>
+    <div class="nav-grid">
+        <div class="nav-item" onclick="showView('view-org')">🏛️ Organismos e<br>Instituciones</div>
+        <div class="nav-item" onclick="showView('view-proceso')">⚖️ Conozca el<br>Proceso Penal</div>
+        <div class="nav-item" onclick="showView('view-videos')">💡 Tips para Familiares<br><span style="font-size: 0.8em; font-weight: normal;">de Privados de Libertad</span></div>
+        <div class="nav-item" onclick="showView('view-servicios')">💼 Publicidad y<br>Servicios</div>
+    </div>
 </div>
-                      <div class="nav-grid">
-            <div class="nav-item" onclick="showView('view-org')">🏛️ Organismos e<br>Instituciones</div>
-            <div class="nav-item" onclick="showView('view-proceso')">⚖️ Conozca el<br>Proceso Penal</div>
-            <div class="nav-item" onclick="showView('view-videos')">💡 Tips para Familiares<br><span style="font-size: 0.8em; font-weight: normal;">de Privados de Libertad</span></div>
-            <div class="nav-item" onclick="showView('view-servicios')">💼 Publicidad y<br>Servicios</div>
+
+<div id="view-proceso" class="view">
+    <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+    <div class="academia-header">
+        <h3 style="margin:0; color:var(--purple);">💡 ACADEMIA Y GUÍA</h3>
+        <div class="search-box">
+            <input type="text" id="busqueda" onkeyup="filtrar()" placeholder="🔍 Buscar tema...">
         </div>
+    </div>
+    <div id="lista-proceso-dinamica"></div>
+</div>
 
+<div id="view-org" class="view">
+    <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+    <h2 style="color: #00796b;">🏛️ Sistema de Justicia</h2>
+    <div id="lista-organismos"></div>
+</div>
 
+<div id="view-videos" class="view">
+    <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+    <h2 style="color: #f57f17;">💡 Tips para Familiares</h2>
+    <div id="lista-tips"></div>
+</div>
+
+<div id="view-servicios" class="view">
+    <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+    <h2 style="color: #1565c0;">💼 Directorio de Servicios</h2>
+    <p style="font-size:0.9em; color:#555; margin-top:-10px; margin-bottom:15px;">Servicios útiles de paquetería, almuerzos, encomiendas y traslados cerca de los centros de reclusión.</p>
+    <div id="lista-servicios"></div>
+</div>
+
+<div id="view-chat-privado" class="view">
+    <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
+    <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
+    
+    <div id="registro-consulta">
+        <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
+        <select id="priv-motivo" class="admin-input">
+            <option value="">¿Motivo de la consulta?</option>
+            <option value="Familiar recién detenido">Tengo un familiar recién detenido</option>
+            <option value="Familiar detenido hace tiempo">Tengo un familiar detenido hace tiempo</option>
+            <option value="Situación jurídica">Quiero conocer situación jurídica</option>
+            <option value="Dejar sin efecto captura">Quiero dejar sin efecto una captura</option>
+            <option value="Tramitar redenciones">Quiero tramitar redenciones de pena</option>
+            <option value="Acceder a beneficio">Quiero acceder a un beneficio</option>
+            <option value="Antecedentes penales">Quiero tramitar antecedentes penales</option>
+            <option value="No presentación UTSO/CRS">No me he presentado en tribunales ni en la UTSO ni en el CRS</option>
+            <option value="Necesito abogado audiencia">Necesito un abogado para una audiencia de presentación, preliminar o juicio</option>
+            <option value="Información de familiar">Necesito información sobre un familiar detenido</option>
+            <option value="Otros motivos">Otros motivos</option>
+        </select>
+        <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
     </div>
 
-    <div id="view-proceso" class="view">
-        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-        <div class="academia-header">
-            <h3 style="margin:0; color:var(--purple);">💡 ACADEMIA Y GUÍA</h3>
-            <div class="search-box">
-                <input type="text" id="busqueda" onkeyup="filtrar()" placeholder="🔍 Buscar tema...">
+    <div id="interfaz-chat-privado" style="display: none; margin-top: 20px;">
+        <div id="private-messages" style="height: 300px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px; position: relative;"></div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <textarea id="priv-input" style="width: 95%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;" placeholder="Escriba su mensaje confidencial aquí..."></textarea>
+            
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                <input type="file" id="priv-file-upload" style="display: none;" onchange="procesarArchivoPrivado(event)">
+                <label for="priv-file-upload" style="background: #e0e0e0; padding: 10px; border-radius: 8px; cursor: pointer; flex: 0.5; text-align: center;">📎</label>
+                <button id="btn-mic-privado" style="background: #e0e0e0; border: none; padding: 10px; border-radius: 8px; flex: 0.5; cursor: pointer;" onclick="toggleMicPrivado()">🎤</button>
+                <button onclick="enviarMensajeTextoPrivado()" style="background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; flex: 2; font-weight: bold;">ENVIAR MENSAJE</button>
             </div>
         </div>
-        <div id="lista-proceso-dinamica"></div>
+
+        <div id="info-abogado-asignado" style="margin-top: 10px;">
+            <p id="titulo-abogado" style="font-size: 0.9em; text-align: center; color: #555;"></p>
+            <a id="btn-salto-wa" href="javascript:void(0)" onclick="if(this.href.includes('javascript')) alert('Esperando a que un abogado acepte su caso para habilitar WhatsApp...')" target="_blank" style="text-decoration: none;">
+                <button style="background: #ccc; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    ⌛ ESPERANDO ASIGNACIÓN...
+                </button>
+            </a>
+        </div>
     </div>
-
-        <div id="view-org" class="view">
-        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-        <h2 style="color: #00796b;">🏛️ Sistema de Justicia</h2>
-        <div id="lista-organismos"></div>
-    </div>
-
-    <div id="view-videos" class="view">
-        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-        <h2 style="color: #f57f17;">💡 Tips para Familiares</h2>
-        <div id="lista-tips"></div>
-    </div>
-
-    <div id="view-servicios" class="view">
-        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-        <h2 style="color: #1565c0;">💼 Directorio de Servicios</h2>
-        <p style="font-size:0.9em; color:#555; margin-top:-10px; margin-bottom:15px;">Servicios útiles de paquetería, almuerzos, encomiendas y traslados cerca de los centros de reclusión.</p>
-        <div id="lista-servicios"></div>
-    </div>
-
-    <div id="view-chat-privado" class="view">
-        <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
-            <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
-            <div id="registro-consulta">
-                <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo">
-               <select id="priv-motivo" class="admin-input">
-    <option value="">¿Motivo de la consulta?</option>
-    <option value="Familiar recién detenido">Tengo un familiar recién detenido</option>
-    <option value="Familiar detenido hace tiempo">Tengo un familiar detenido hace tiempo</option>
-    <option value="Situación jurídica">Quiero conocer situación jurídica</option>
-    <option value="Dejar sin efecto captura">Quiero dejar sin efecto una captura</option>
-    <option value="Tramitar redenciones">Quiero tramitar redenciones de pena</option>
-    <option value="Acceder a beneficio">Quiero acceder a un beneficio</option>
-    <option value="Antecedentes penales">Quiero tramitar antecedentes penales</option>
-    <option value="No presentación UTSO/CRS">No me he presentado en tribunales ni en la UTSO ni en el CRS</option>
-    <option value="Necesito abogado audiencia">Necesito un abogado para una audiencia de presentación, preliminar o juicio</option>
-    <option value="Información de familiar">Necesito información sobre un familiar detenido</option>
-    <option value="Otros motivos">Otros motivos</option>
-</select>
-
-                <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
-                <div style="margin-top: 20px; background: #f8f9fa; border-left: 4px solid #1a237e; padding: 15px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-    <p style="margin: 0 0 8px 0; color: #1a237e; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; gap: 5px;">
-        🔒 Garantía de Confidencialidad Absoluta
-    </p>
-    <p style="margin: 0; color: #555; font-size: 0.8em; line-height: 1.5; text-align: justify;">
-        Al iniciar, entrará a un canal completamente confidencial. En estricto cumplimiento del <b>Secreto Profesional</b>, cuando el abogado cierre la sesión toda la conversación, audios, imágenes y documentos se <b>destruirán automáticamente</b> de la base de datos y de su celular, sin dejar rastro alguno.
-    </p>
-</div>
 
     <div id="admin-panel">
         <h3>Panel Administrador</h3>
@@ -165,19 +172,16 @@
         <input type="text" id="adm-org-tel" class="admin-input" placeholder="Teléfono/Dirección">
         <button onclick="guardarOrg()" style="width:100%; background:var(--primary); color:white; padding:10px; border:none; border-radius:5px;">Guardar Organismo</button>
         <hr>
-                <hr>
         <h4 style="margin-bottom:5px; color:#f57f17;">💡 Publicar Tip para Familiares</h4>
         <input type="text" id="adm-tip-tit" class="admin-input" placeholder="Título (ej. Horarios de Visita CPO)">
         <textarea id="adm-tip-txt" class="admin-input" placeholder="Escribe el consejo o tip aquí..."></textarea>
         <button onclick="guardarTip()" style="width:100%; background:#fbc02d; color:#333; padding:10px; border:none; border-radius:5px; font-weight:bold;">Guardar Tip</button>
-
         <hr>
         <h4 style="margin-bottom:5px; color:#1565c0;">💼 Publicar Servicio/Publicidad</h4>
         <input type="text" id="adm-srv-nom" class="admin-input" placeholder="Nombre (ej. Inversiones María)">
         <input type="text" id="adm-srv-desc" class="admin-input" placeholder="¿Qué ofrece? (ej. Almuerzos y traslados al penal)">
         <input type="text" id="adm-srv-tel" class="admin-input" placeholder="WhatsApp del negocio (ej. 04141234567)">
         <button onclick="guardarServicio()" style="width:100%; background:#1565c0; color:white; padding:10px; border:none; border-radius:5px;">Publicar Servicio</button>
-
         <h4 style="margin-bottom:5px; color:#00796b;">👥 Registrar Colegas al Equipo</h4>
         <input type="text" id="adm-abg-pin" class="admin-input" placeholder="Crear PIN (ej. 5678)">
         <input type="text" id="adm-abg-nom" class="admin-input" placeholder="Nombre (ej. Dra. Ana Silva)">
@@ -187,52 +191,21 @@
         <div id="seccion-alertas" style="margin-top:20px; background:#f8d7da; padding:10px; border-radius:10px;">
             <h4 style="margin:0; color:#721c24;">🚨 ALERTAS EN VIVO</h4>
             <div id="panel-emergencias-admin" style="display:none; background: #fff; border: 2px solid #c62828; border-radius: 12px; padding: 15px; margin: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-    <h3 style="color: #c62828; margin-top: 0; display: flex; align-items: center; gap: 10px;">
-        🚨 <span id="contador-pendientes">0</span> CONSULTAS PENDIENTES
-    </h3>
-    <div id="lista-prioritaria" style="max-height: 200px; overflow-y: auto;">
+                <h3 style="color: #c62828; margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                    🚨 <span id="contador-pendientes">0</span> CONSULTAS PENDIENTES
+                </h3>
+                <div id="lista-prioritaria" style="max-height: 200px; overflow-y: auto;"></div>
+            </div>
         </div>
-</div>
-
-        </div>
-                <button onclick="cerrarSesionAdmin()" style="width:100%; margin-top:15px; background:#c62828; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+        <button onclick="cerrarSesionAdmin()" style="width:100%; margin-top:15px; background:#c62828; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
             🚪 CERRAR SESIÓN (Volver a modo familiar)
         </button>
         <button onclick="this.parentElement.style.display='none'" style="width:100%; margin-top:10px; color:#555; border:none; background:none; text-decoration:underline; cursor:pointer;">
             Solo ocultar panel temporalmente
        </button>
-
-    </div>
-
-
-            <div id="interfaz-chat-privado" >
-<div id="private-messages" style="height: 300px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px; position: relative;">
-  
-</div>
-<div style="display: flex; flex-direction: column; gap: 10px;">
-    <textarea id="priv-input" style="width: 95%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;" placeholder="Escriba su mensaje confidencial aquí..."></textarea>
-    
-    <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
-        <input type="file" id="priv-file-upload" style="display: none;" onchange="procesarArchivoPrivado(event)">
-        <label for="priv-file-upload" style="background: #e0e0e0; padding: 10px; border-radius: 8px; cursor: pointer; flex: 0.5; text-align: center;">📎</label>
-        <button id="btn-mic-privado" style="background: #e0e0e0; border: none; padding: 10px; border-radius: 8px; flex: 0.5; cursor: pointer;" onclick="toggleMicPrivado()">🎤</button>
-        <button onclick="enviarMensajeTextoPrivado()" style="background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; flex: 2; font-weight: bold;">ENVIAR MENSAJE</button>
     </div>
 </div>
 
-<div id="info-abogado-asignado" style="margin-top: 10px;">
-    <p id="titulo-abogado" style="font-size: 0.9em; text-align: center; color: #555;"></p>
-    <a id="btn-salto-wa" href="javascript:void(0)" onclick="if(this.href.includes('javascript')) alert('Esperando a que un abogado acepte su caso para habilitar WhatsApp...')" target="_blank" style="text-decoration: none;">
-        <button style="background: #ccc; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            ⌛ ESPERANDO ASIGNACIÓN...
-        </button>
-    </a>
-</div>
-</div>
-
-        </div>
-    </div>
-</div>
 <div id="modal-articulo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; width:90%; max-height:85vh; border-radius:15px; overflow:hidden; display:flex; flex-direction:column; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
         <div style="background:var(--purple); padding:15px; display:flex; justify-content:space-between; align-items:center; color:white;">
@@ -244,17 +217,10 @@
 </div>
 
 <script>
-// 1. GESTIÓN DE CACHÉ Y SERVICE WORKER
-if ('caches' in window) { 
-    caches.keys().then(names => { names.forEach(name => { caches.delete(name); }); }); 
-}
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(error => { console.log('SW falló:', error); });
-    });
-}
+// --- [MANTENIMIENTO DEL CÓDIGO ORIGINAL] ---
+if ('caches' in window) { caches.keys().then(names => { names.forEach(name => { caches.delete(name); }); }); }
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.log('SW falló')); }); }
 
-// 2. CONFIGURACIÓN FIREBASE
 const firebaseConfig = {
     apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
     authDomain: "privadosayuda-f01f1.firebaseapp.com",
@@ -269,7 +235,6 @@ if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 firebase.auth().signInAnonymously();
 
-// 3. VARIABLES DE ESTADO GLOBAL
 let esAdmin = false;
 let nombreAdmin = "";
 let telefonoAdmin = "";
@@ -281,18 +246,14 @@ let grabando = false;
 const alarmaAdmin = new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3');
 alarmaAdmin.loop = true;
 
-// 4. NAVEGACIÓN (La función showView que usan tus botones)
 function showView(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
     document.getElementById(id).classList.add('active-view');
     window.scrollTo(0,0);
 }
 
-// 5. SISTEMA MULTI-ADMINISTRADOR
 let t = 0;
 let equipoLegalDinamico = {};
-
-// Recuperar sesión si ya existía (Persistencia básica)
 const adminGuardado = localStorage.getItem('admin_activo');
 if(adminGuardado) {
     const datos = JSON.parse(adminGuardado);
@@ -300,7 +261,6 @@ if(adminGuardado) {
     nombreAdmin = datos.nombre;
     telefonoAdmin = datos.telefono;
     document.getElementById('admin-panel').style.display = 'block';
-    // ESTO ES LO MÁS IMPORTANTE: Reactivar el motor siempre
     setTimeout(activarMotorAdmin, 2000); 
 }
 
@@ -315,10 +275,7 @@ document.getElementById('main-header').onclick = () => {
             esAdmin = true;
             nombreAdmin = equipoLegalDinamico[clave].nombre;
             telefonoAdmin = equipoLegalDinamico[clave].telefono;
-            
-            // Guardar en memoria del navegador para que no se pierda al refrescar
             localStorage.setItem('admin_activo', JSON.stringify(equipoLegalDinamico[clave]));
-            
             document.getElementById('admin-panel').style.display='block';
             activarMotorAdmin(); 
             alert("Sesión iniciada: " + nombreAdmin);
@@ -327,186 +284,66 @@ document.getElementById('main-header').onclick = () => {
     }
 };
 
-
-// 6. LÓGICA DE CONSULTA (CLIENTE)
-// 6. LÓGICA DE CONSULTA (CLIENTE)
-// --- NUEVA FUNCIÓN DE APOYO PARA TELEGRAM ---
-// --- FUNCIÓN DE ALERTA TELEGRAM CORREGIDA ---
-// --- FUNCIÓN DE ALERTA TELEGRAM CORREGIDA Y LIMPIA ---
 function enviarAlertaTelegram(cliente, motivo) {
     const TELEGRAM_TOKEN = "8017218933:AAEyBytMfs9MQ4avkjquRR1gOuKp-K4RDk8";
     const TELEGRAM_CHAT_ID = "8377293331"; 
-    
     const texto = `🚨 *ALERTA APP*\n👤 Cliente: ${cliente}\n⚖️ Motivo: ${motivo}`;
-
-    fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(texto)}&parse_mode=Markdown`)
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                console.error("❌ ERROR TELEGRAM:", data.description);
-                alert("Error de Alerta: " + data.description); // Esto le avisará qué pasa exactamente
-            });
-        }
-        console.log("✅ Alerta enviada con éxito");
-    })
-    .catch(err => console.error("❌ Error de Red:", err));
+    fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(texto)}&parse_mode=Markdown`);
 }
 
-
-
-
-
-
-
-
-// --- TU FUNCIÓN ORIGINAL PERO "POTENCIADA" ---
-
-
-// 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
-// 7. MOTOR DE ALERTAS Y ATENCIÓN (ADMIN)
 function activarMotorAdmin() {
-    console.log("Motor de alertas activado..."); 
-    
-    // Escuchamos los cambios en el nodo de consultas
     db.ref("consultas_privadas").on("value", snapshot => {
-        // Si el usuario no es admin, no procesamos nada
         if (!esAdmin) return;
-        
         const consultas = snapshot.val();
         const listaDiv = document.getElementById('lista-prioritaria');
         const panelAlerta = document.getElementById('panel-emergencias-admin');
         const seccionContenedora = document.getElementById('seccion-alertas');
-        
         let pendientes = 0;
-
-        // Si no hay ninguna consulta en la base de datos
-        if (!consultas) {
-            seccionContenedora.style.display = 'none';
-            panelAlerta.style.display = 'none';
-            listaDiv.innerHTML = "<p style='text-align:center;'>Bandeja vacía</p>";
-            alarmaAdmin.pause();
-            return;
-        }
-
-        // Siempre mostramos la sección contenedora si llegamos aquí
+        if (!consultas) { seccionContenedora.style.display = 'none'; panelAlerta.style.display = 'none'; return; }
         seccionContenedora.style.display = 'block';
-        
-        // Botón de limpieza masiva al inicio de la lista
-        listaDiv.innerHTML = `
-            <button onclick="eliminarTodoSeguro()" style="width:100%; background:#333; color:white; border:none; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer;">
-                🗑️ ELIMINAR TODAS LAS CONSULTAS
-            </button>`;
-
-        // Recorremos las consultas para dibujar las tarjetas
+        listaDiv.innerHTML = `<button onclick="eliminarTodoSeguro()" style="width:100%; background:#333; color:white; border:none; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer;">🗑️ ELIMINAR TODAS LAS CONSULTAS</button>`;
         for (let id in consultas) {
             const c = consultas[id];
-            
-            // Filtramos solo las que están en curso
             if (c.estado === "pendiente" || c.estado === "atendiendo") {
                 if (c.estado === "pendiente") pendientes++;
-                
-                const colorFondo = c.estado === "atendiendo" ? "#e3f2fd" : "#fff";
-                const textoBoton = c.estado === "atendiendo" ? "ABRIR CHAT" : "ATENDER";
-
-                listaDiv.innerHTML += `
-                    <div style="background:${colorFondo}; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <b>👤 ${c.cliente}</b><br>
-                            <small>⚖️ ${c.motivo}</small>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <button onclick="atenderConsulta('${id}')" style="background:#2e7d32; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">
-                                ${textoBoton}
-                            </button>
-                            <button onclick="borrarCasoSeguro('${id}')" style="background:#c62828; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">
-                                🗑️
-                            </button>
-                        </div>
-                    </div>`;
+                listaDiv.innerHTML += `<div style="background:${c.estado === "atendiendo" ? "#e3f2fd" : "#fff"}; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+                    <div><b>👤 ${c.cliente}</b><br><small>⚖️ ${c.motivo}</small></div>
+                    <div style="display:flex; gap:5px;"><button onclick="atenderConsulta('${id}')" style="background:#2e7d32; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">${c.estado === "atendiendo" ? "ABRIR" : "ATENDER"}</button><button onclick="borrarCasoSeguro('${id}')" style="background:#c62828; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">🗑️</button></div>
+                </div>`;
             }
         }
-
-        // Actualizamos el contador visual
         document.getElementById('contador-pendientes').innerText = pendientes;
-
-        // Si hay casos nuevos, mostramos el panel y activamos alarma
-        if (pendientes > 0) {
-            panelAlerta.style.display = 'block';
-            alarmaAdmin.play().catch(e => console.log("Esperando interacción para audio"));
-        } else {
-            // Si hay casos pero todos están siendo "atendidos", el panel sigue visible pero sin alarma
-            panelAlerta.style.display = 'block';
-            alarmaAdmin.pause();
-            alarmaAdmin.currentTime = 0;
-        }
+        if (pendientes > 0) { panelAlerta.style.display = 'block'; alarmaAdmin.play().catch(e=>0); } else { panelAlerta.style.display = 'block'; alarmaAdmin.pause(); alarmaAdmin.currentTime = 0; }
     });
 }
+
 function iniciarConsulta() {
     const nombre = document.getElementById('priv-nombre').value;
     const motivo = document.getElementById('priv-motivo').value;
-    
-    // 1. Validar campos
-    if(nombre.trim() === "" || motivo === "") {
-        alert("Por favor, complete su nombre y el motivo de la consulta.");
-        return; 
-    }
-    
-    // 2. Gestionar ID de consulta
-    const sesionPrevia = localStorage.getItem('mi_consulta_id');
-    if (sesionPrevia) {
-        if (!confirm("Ya tiene una consulta iniciada. ¿Desea continuar?")) return;
-        consultaActualId = sesionPrevia;
-    } else {
+    if(nombre && motivo) {
         consultaActualId = "CONSULTA_" + Date.now();
-    }
-    
-    // 3. Guardar en Firebase si es nueva
-    if (!sesionPrevia) {
-        db.ref("consultas_privadas/" + consultaActualId).set({ 
-            cliente: nombre, 
-            motivo: motivo, 
-            timestamp: Date.now(), 
-            estado: "pendiente" 
+        const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
+        refConsulta.onDisconnect().remove(); 
+        refConsulta.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "pendiente" });
+        // --- CORRECCIÓN AQUÍ ---
+        document.getElementById('registro-consulta').style.display = 'none';
+        document.getElementById('interfaz-chat-privado').style.display = 'block';
+        // -----------------------
+        refConsulta.on("value", s => {
+            const data = s.val();
+            if(data && data.abogadoNombre && data.abogadoTelefono) {
+                document.getElementById('titulo-abogado').innerHTML = `🤝 Su caso fue asignado a: <b>${data.abogadoNombre}</b>`;
+                const btnWa = document.getElementById('btn-salto-wa');
+                btnWa.href = `https://wa.me/${data.abogadoTelefono}?text=Hola%20${data.abogadoNombre},%20vengo%20de%20la%20App%20Privados.%20Soy%20${data.cliente},%20le%20escribo%20por%20un%20caso%20de%20${data.motivo}.`;
+                btnWa.innerText = `IR AL WHATSAPP DE ${data.abogadoNombre.toUpperCase()}`;
+            }
         });
-        enviarAlertaTelegram(nombre, motivo);
-        localStorage.setItem('mi_consulta_id', consultaActualId);
-    }
-
-    // 4. CORRECCIÓN DE VISIBILIDAD (Aseguramos que el contenedor sea visible)
-    // Ocultamos el registro limpiamente
-    const registro = document.getElementById('registro-consulta');
-    registro.style.display = 'none'; 
-    registro.classList.remove('active-view');
-
-    // Mostramos el contenedor padre del chat y la interfaz interna
-    const contenedorChat = document.getElementById('view-chat-privado');
-    contenedorChat.style.display = 'block'; // Forzamos el display
-    contenedorChat.classList.add('active-view');
-
-    const interfazChat = document.getElementById('interfaz-chat-privado');
-    interfazChat.style.display = 'block'; // Forzamos el display interno
-
-    // 5. Escuchar cambios y cargar chat
-    ref = db.ref("consultas_privadas/" + consultaActualId);
-    ref.on('value', snapshot => {
-        if (!snapshot.exists()) {
-            localStorage.removeItem('mi_consulta_id');
-            alert("🔒 La sesión ha finalizado.");
-            location.reload(); 
-        }
-    });
-
-    escucharMensajesPrivados();
+        escucharMensajesPrivados();
+    } else { alert("Por favor, complete sus datos."); }
 }
 
-
 function atenderConsulta(id) {
-    db.ref("consultas_privadas/" + id).update({
-        estado: "atendiendo",
-        abogadoNombre: nombreAdmin,
-        abogadoTelefono: telefonoAdmin
-    });
-    
+    db.ref("consultas_privadas/" + id).update({ estado: "atendiendo", abogadoNombre: nombreAdmin, abogadoTelefono: telefonoAdmin });
     consultaActualId = id;
     showView('view-chat-privado');
     document.getElementById('registro-consulta').style.display = 'none';
@@ -514,77 +351,30 @@ function atenderConsulta(id) {
     escucharMensajesPrivados();
 }
 
-
-// 8. CHAT PRIVADO Y MULTIMEDIA
-// 8. CHAT PRIVADO Y MULTIMEDIA
 function escucharMensajesPrivados() {
     const box = document.getElementById('private-messages');
     if (listenerPrivado) listenerPrivado.off();
     box.innerHTML = '';
     const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
-
-    // DETECTOR DE CIERRE DE SESIÓN SEGURO
     refConsulta.on('value', s => {
-        if (!s.exists()) {
-            localStorage.removeItem('mi_consulta_id'); 
-            alert("⚠️ SESIÓN FINALIZADA: El abogado cerró el caso y la información fue eliminada del servidor por seguridad.");
-            location.reload();
-        } else {
-            const data = s.val();
-            if(data && data.abogadoNombre && !esAdmin) {
-                document.getElementById('titulo-abogado').innerHTML = `🤝 Caso asignado a: <b>${data.abogadoNombre}</b>`;
-                const btnWa = document.getElementById('btn-salto-wa');
-                const telefono = data.abogadoTelefono ? data.abogadoTelefono.replace(/\D/g,'') : ""; 
-                const msj = encodeURIComponent(`*CONSULTA PRIVADA*\nHola ${data.abogadoNombre}, soy ${data.cliente}. Caso: ${data.motivo}`);
-                btnWa.href = `https://wa.me/${telefono}?text=${msj}`;
-                const btnVisual = btnWa.querySelector('button');
-                btnVisual.innerText = `🟢 CONTACTAR A ${data.abogadoNombre.toUpperCase()}`;
-                btnVisual.style.background = "#25D366";
-            }
-        }
+        if (!s.exists()) { alert("⚠️ SESIÓN FINALIZADA."); location.reload(); }
     });
-
     listenerPrivado = refConsulta.child("mensajes");
     listenerPrivado.on("child_added", s => {
         const data = s.val();
         const emisorAdmin = data.emisor.includes("Dr") || data.emisor.includes("Abg");
-
-        // --- LÓGICA DE ALERTA TELEGRAM INCORPORADA ---
-        // Si el mensaje NO viene de un administrador y NO soy yo (admin) viendo el chat, alertamos.
-        if (!emisorAdmin && !esAdmin) {
-            const resumen = data.tipo === 'texto' ? data.texto : `Envió un ${data.tipo}`;
-            enviarAlertaTelegram(`MENSAJE DE CLIENTE`, resumen);
-        }
-        // --------------------------------------------
-
-        const esMio = (esAdmin && !emisorAdmin) || (!esAdmin && emisorAdmin);
-
-        if (esMio) {
-            new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3').play().catch(e=>0);
-        }
-
-        const bg = emisorAdmin ? "#d1f5d3" : "#f1f3f9";
-        let contenido = data.tipo === 'audio' ? `<audio controls src="${data.contenido}"></audio>` : 
-                        data.tipo === 'imagen' ? `<img src="${data.contenido}" style="max-width:100%">` : data.texto;
-
+        if (!emisorAdmin && !esAdmin) enviarAlertaTelegram(`MENSAJE`, data.texto);
+        const bg = ( (esAdmin && !emisorAdmin) || (!esAdmin && emisorAdmin) ) ? "#d1f5d3" : "#f1f3f9";
+        let contenido = data.tipo === 'audio' ? `<audio controls src="${data.contenido}"></audio>` : (data.tipo === 'imagen' ? `<img src="${data.contenido}" style="max-width:100%">` : data.texto);
         box.innerHTML += `<div class="msg" style="background:${bg};"><b>${data.emisor}:</b><br>${contenido}</div>`;
         box.scrollTop = box.scrollHeight;
     });
 }
 
-// --- FIN DEL NUEVO SISTEMA ---
-
-
-
 function enviarMensajeTextoPrivado() {
     const input = document.getElementById('priv-input');
     if(input.value.trim() && consultaActualId) {
-        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
-            emisor: esAdmin ? nombreAdmin : "Familiar",
-            texto: input.value,
-            tipo: 'texto',
-            fecha: new Date().toLocaleTimeString()
-        });
+        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({ emisor: esAdmin ? nombreAdmin : "Familiar", texto: input.value, tipo: 'texto', fecha: new Date().toLocaleTimeString() });
         input.value = "";
     }
 }
@@ -600,16 +390,11 @@ async function toggleMicPrivado() {
             mediaRecorder.onstop = () => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
-                        emisor: esAdmin ? nombreAdmin : "Familiar",
-                        tipo: "audio", contenido: e.target.result,
-                        fecha: new Date().toLocaleTimeString()
-                    });
+                    db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({ emisor: esAdmin ? nombreAdmin : "Familiar", tipo: "audio", contenido: e.target.result, fecha: new Date().toLocaleTimeString() });
                 };
                 reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
             };
-            mediaRecorder.start(); grabando = true;
-            btn.innerHTML = "⏹️"; btn.style.background = "#ffcdd2";
+            mediaRecorder.start(); grabando = true; btn.innerHTML = "⏹️"; btn.style.background = "#ffcdd2";
         } catch (err) { alert("Micrófono no accesible."); }
     } else { mediaRecorder.stop(); grabando = false; btn.innerHTML = "🎤"; btn.style.background = "#e0e0e0"; }
 }
@@ -619,187 +404,27 @@ function procesarArchivoPrivado(event) {
     if (!file || !consultaActualId) return;
     const reader = new FileReader();
     reader.onload = (e) => {
-        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({
-            emisor: esAdmin ? nombreAdmin : "Familiar",
-            tipo: file.type.startsWith('image/') ? "imagen" : "archivo",
-            contenido: e.target.result,
-            nombreArchivo: file.name,
-            fecha: new Date().toLocaleTimeString()
-        });
+        db.ref("consultas_privadas/" + consultaActualId + "/mensajes").push({ emisor: esAdmin ? nombreAdmin : "Familiar", tipo: file.type.startsWith('image/') ? "imagen" : "archivo", contenido: e.target.result, nombreArchivo: file.name, fecha: new Date().toLocaleTimeString() });
     };
     reader.readAsDataURL(file);
 }
-// 9. FUNCIONES DE ACADEMIA, ORGANISMOS Y CHAT PÚBLICO (Tus funciones originales)
-function filtrar() { 
-    let val = document.getElementById('busqueda').value.toLowerCase(); 
-    document.querySelectorAll('.card-juridica').forEach(c => c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none"); 
-}
-// ==========================================
-// FUNCIONES PARA GUARDAR DESDE EL ADMIN
-// ==========================================
-function guardarProc() { 
-    const t = document.getElementById('adm-proc-tit'); const txt = document.getElementById('adm-proc-txt'); 
-    if(t.value && txt.value) db.ref("proceso_penal").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Clase publicada"); t.value=''; txt.value=''; }); 
-}
-function guardarOrg() { 
-    const n = document.getElementById('adm-org-nom'); const i = document.getElementById('adm-org-tel'); 
-    if(n.value && i.value) db.ref("organismos").push({ nombre: n.value, info: i.value }).then(() => { alert("Organismo guardado"); n.value=''; i.value=''; }); 
-}
-function guardarTip() { 
-    const t = document.getElementById('adm-tip-tit'); const txt = document.getElementById('adm-tip-txt'); 
-    if(t.value && txt.value) db.ref("tips_familiares").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Tip publicado"); t.value=''; txt.value=''; }); 
-}
-function guardarServicio() { 
-    const n = document.getElementById('adm-srv-nom'); const d = document.getElementById('adm-srv-desc'); const t = document.getElementById('adm-srv-tel');
-    if(n.value && d.value && t.value) db.ref("servicios").push({ nombre: n.value, desc: d.value, tel: t.value }).then(() => { alert("Servicio publicado"); n.value=''; d.value=''; t.value=''; }); 
-}
 
-// ==========================================
-// LECTORES AUTOMÁTICOS (MUESTRAN LA INFO AL USUARIO)
-// ==========================================
-// 1. Mostrar Academia
-// 1. Mostrar Academia (Proceso Penal) en Tarjetas Elegantes
-db.ref("proceso_penal").on("value", s => {
-    const box = document.getElementById("lista-proceso-dinamica"); box.innerHTML = "";
-    if(s.exists()) s.forEach(child => { 
-        const d = child.val(); 
-        
-        // Cortamos el texto para hacer el "extracto" (solo los primeros 120 caracteres)
-        const extracto = d.texto.length > 120 ? d.texto.substring(0, 120) + "..." : d.texto;
-        
-        // Codificamos el texto para evitar que las comillas rompan el código HTML
-        const tituloSeguro = encodeURIComponent(d.titulo);
-        const textoSeguro = encodeURIComponent(d.texto);
+function filtrar() { let val = document.getElementById('busqueda').value.toLowerCase(); document.querySelectorAll('.card-juridica').forEach(c => c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none"); }
+function guardarProc() { const t = document.getElementById('adm-proc-tit'); const txt = document.getElementById('adm-proc-txt'); if(t.value && txt.value) db.ref("proceso_penal").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Publicado"); }); }
+function guardarOrg() { const n = document.getElementById('adm-org-nom'); const i = document.getElementById('adm-org-tel'); if(n.value && i.value) db.ref("organismos").push({ nombre: n.value, info: i.value }).then(() => { alert("Guardado"); }); }
+function guardarTip() { const t = document.getElementById('adm-tip-tit'); const txt = document.getElementById('adm-tip-txt'); if(t.value && txt.value) db.ref("tips_familiares").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Publicado"); }); }
+function guardarServicio() { const n = document.getElementById('adm-srv-nom'); const d = document.getElementById('adm-srv-desc'); const t = document.getElementById('adm-srv-tel'); if(n.value && d.value && t.value) db.ref("servicios").push({ nombre: n.value, desc: d.value, tel: t.value }).then(() => { alert("Publicado"); }); }
+function guardarAbogado() { const pin = document.getElementById('adm-abg-pin').value; const nom = document.getElementById('adm-abg-nom').value; const tel = document.getElementById('adm-abg-tel').value; if(pin && nom && tel) { db.ref("equipo_legal/" + pin).set({ nombre: nom, telefono: tel }); alert("Colega registrado."); } }
+function cerrarSesionAdmin() { localStorage.removeItem('admin_activo'); location.reload(); }
+function eliminarTodoSeguro() { if (confirm("¿Seguro?")) db.ref("consultas_privadas").remove(); }
+function borrarCasoSeguro(id) { db.ref("consultas_privadas/" + id).remove(); }
+function abrirModalArticulo(tit, txt) { document.getElementById('modal-titulo').innerText = decodeURIComponent(tit); document.getElementById('modal-texto').innerHTML = decodeURIComponent(txt).replace(/\n/g, '<br><br>'); document.getElementById('modal-articulo').style.display = 'flex'; }
+function cerrarModalArticulo() { document.getElementById('modal-articulo').style.display = 'none'; }
+function compartirArticulo(tit, txt) { if (navigator.share) navigator.share({ title: decodeURIComponent(tit), text: decodeURIComponent(txt) }); else window.open(`https://wa.me/?text=${encodeURIComponent(decodeURIComponent(tit))}`, '_blank'); }
 
-        box.innerHTML += `
-        <div class="card-juridica" style="border-left: 5px solid var(--purple); padding: 15px; margin-bottom: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <span style="background:var(--purple); color:white; padding:4px 8px; border-radius:5px; font-size:0.7em; font-weight:bold;">TUTORIAL</span>
-            </div>
-            <h3 style="margin: 10px 0 5px 0; color: #333; font-size:1.1em;">${d.titulo}</h3>
-            <p style="font-size:0.85em; color:#666; font-style:italic; margin-bottom:15px;">"${extracto}"</p>
-            
-            <div style="display:flex; gap:10px;">
-                <button onclick="abrirModalArticulo('${tituloSeguro}', '${textoSeguro}')" style="background:var(--purple); color:white; border:none; padding:10px; border-radius:8px; flex:1; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer;">
-                    📖 LEER
-                </button>
-                <button onclick="compartirArticulo('${tituloSeguro}', '${textoSeguro}')" style="background:#25D366; color:white; border:none; padding:10px; border-radius:8px; flex:1; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer;">
-                    📲 COMPARTIR
-                </button>
-            </div>
-        </div>`; 
-    });
-});
-
-
-// 3. Mostrar Tips
-db.ref("tips_familiares").on("value", s => {
-    const box = document.getElementById("lista-tips"); box.innerHTML = "";
-    if(s.exists()) s.forEach(child => { const d = child.val(); box.innerHTML += `<div class="card-juridica" style="border-left-color:#fbc02d;"><h4 style="margin-top:0; color:#f57f17;">💡 ${d.titulo}</h4><p style="font-size:0.9em; text-align:justify;">${d.texto}</p></div>`; });
-});
-
-// 4. Mostrar Servicios y Publicidad (Con botón a WhatsApp)
-db.ref("servicios").on("value", s => {
-    const box = document.getElementById("lista-servicios"); box.innerHTML = "";
-    if(s.exists()) s.forEach(child => { 
-        const d = child.val(); 
-        const numWa = d.tel.replace(/\D/g,''); // Limpia el número
-        box.innerHTML += `
-        <div class="card-juridica" style="border-left-color:#1565c0;">
-            <h4 style="margin-top:0; color:#1565c0;">💼 ${d.nombre}</h4>
-            <p style="font-size:0.9em; margin-bottom:15px;">${d.desc}</p>
-            <a href="https://wa.me/${numWa}?text=Hola,%20vengo%20de%20la%20App%20SUEÑOS%20DE%20LIBERTAD%20y%20necesito%20su%20servicio." target="_blank" style="text-decoration:none; background:#25D366; color:white; padding:8px 15px; border-radius:5px; font-weight:bold; font-size:0.8em; display:inline-block;">
-                🟢 Contactar al Servicio
-            </a>
-        </div>`; 
-    });
-});
-
-function guardarAbogado() {
-    const pin = document.getElementById('adm-abg-pin').value;
-    const nom = document.getElementById('adm-abg-nom').value;
-    const tel = document.getElementById('adm-abg-tel').value;
-    if(pin && nom && tel) {
-        db.ref("equipo_legal/" + pin).set({ nombre: nom, telefono: tel });
-        alert("Colega registrado.");
-    }
-}
-
-// --- FUNCIÓN PARA CERRAR SESIÓN DE ADMIN ---
-function cerrarSesionAdmin() {
-    if (confirm("¿Está seguro que desea cerrar la sesión de abogado? La aplicación volverá a la vista de usuario normal.")) {
-        // 1. Borramos la memoria del celular
-        localStorage.removeItem('admin_activo');
-        
-        // 2. Apagamos alarmas si estaban sonando
-        alarmaAdmin.pause();
-        alarmaAdmin.currentTime = 0;
-        
-        // 3. Reiniciamos variables por seguridad
-        esAdmin = false;
-        nombreAdmin = "";
-        telefonoAdmin = "";
-        
-        // 4. Recargamos la página para limpiar todo el sistema y volver a modo familiar
-        location.reload(); 
-    }
-}
-
-// Función para eliminar TODO el nodo de consultas privadas
-function eliminarTodoSeguro() {
-    if (confirm("🚨 ¿ESTÁ SEGURO?\nEsta acción destruirá ABSOLUTAMENTE TODAS las consultas, chats y archivos del servidor para garantizar la confidencialidad total.")) {
-        db.ref("consultas_privadas").remove()
-        .then(() => alert("Base de datos de consultas limpiada con éxito."));
-    }
-}
-
-// Función para borrar un caso específico
-function borrarCasoSeguro(id) {
-    db.ref("consultas_privadas/" + id).remove();
-}
-// ==========================================
-// MOTOR DEL CHAT PÚBLICO (CON AUTODESTRUCCIÓN)
-// ==========================================
-
-// 1. LIMPIEZA AUTOMÁTICA DE 48 HORAS
-
-
-
-
-function abrirModalArticulo(tituloCodificado, textoCodificado) {
-    // Decodificamos la información
-    const titulo = decodeURIComponent(tituloCodificado);
-    const texto = decodeURIComponent(textoCodificado);
-    
-    // Insertamos los datos en la ventana emergente
-    document.getElementById('modal-titulo').innerText = titulo;
-    // Convertimos los saltos de línea en <br> para que el texto respire y se vea bien
-    document.getElementById('modal-texto').innerHTML = texto.replace(/\n/g, '<br><br>');
-    
-    // Mostramos la ventana
-    document.getElementById('modal-articulo').style.display = 'flex';
-}
-
-function cerrarModalArticulo() {
-    document.getElementById('modal-articulo').style.display = 'none';
-}
-
-function compartirArticulo(tituloCodificado, textoCodificado) {
-    const titulo = decodeURIComponent(tituloCodificado);
-    const texto = decodeURIComponent(textoCodificado);
-    const textoParaEnviar = `*${titulo}*\n\n${texto}\n\n_Información vía App Privados - Sueños de Libertad_`;
-
-    // Usamos el menú nativo de compartir del celular (Funciona en Android e iOS)
-    if (navigator.share) {
-        navigator.share({
-            title: titulo,
-            text: textoParaEnviar
-        }).catch(err => console.log("Error al compartir:", err));
-    } else {
-        // Si están en una PC vieja, abrimos WhatsApp Web directamente
-        window.open(`https://wa.me/?text=${encodeURIComponent(textoParaEnviar)}`, '_blank');
-    }
-}
+db.ref("proceso_penal").on("value", s => { const box = document.getElementById("lista-proceso-dinamica"); box.innerHTML = ""; if(s.exists()) s.forEach(c => { const d = c.val(); box.innerHTML += `<div class="card-juridica"><h3>${d.titulo}</h3><button onclick="abrirModalArticulo('${encodeURIComponent(d.titulo)}','${encodeURIComponent(d.texto)}')">LEER</button></div>`; }); });
+db.ref("tips_familiares").on("value", s => { const box = document.getElementById("lista-tips"); box.innerHTML = ""; if(s.exists()) s.forEach(c => { const d = c.val(); box.innerHTML += `<div class="card-juridica"><h4>💡 ${d.titulo}</h4><p>${d.texto}</p></div>`; }); });
+db.ref("servicios").on("value", s => { const box = document.getElementById("lista-servicios"); box.innerHTML = ""; if(s.exists()) s.forEach(c => { const d = c.val(); box.innerHTML += `<div class="card-juridica"><h4>💼 ${d.nombre}</h4><p>${d.desc}</p><a href="https://wa.me/${d.tel.replace(/\D/g,'')}">Contactar</a></div>`; }); });
 </script>
 </body>
 </html>
