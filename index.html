@@ -55,6 +55,29 @@
         .btn-latido {
             animation: latido 2s infinite ease-in-out;
         }
+        
+        .estilo-input {
+        width: 100%;           /* Ambos ocuparán todo el ancho */
+        padding: 12px;         /* Espacio interno igual */
+        margin-bottom: 15px;   /* Separación uniforme */
+        border: 1px solid #ccc;
+        border-radius: 8px;    /* Bordes redondeados idénticos */
+        box-sizing: border-box;/* ¡Clave! evita que el padding deforme el tamaño */
+        font-size: 16px;       /* Tamaño de letra igual */
+    }
+ #interfaz-chat-privado {
+    position: relative;
+    /* Esto crea un patrón de rayas que atraviesa todo el chat */
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(0,0,0,0.05),
+        rgba(0,0,0,0.05) 10px,
+        transparent 10px,
+        transparent 20px
+    );
+    pointer-events: auto;
+}
+
 
     </style>
 </head>
@@ -69,7 +92,7 @@
     <div class="hook-card" style="position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(26,35,126,0.4); z-index: 10;">
         <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%); pointer-events: none;"></div>
         <h3 style="margin-top: 0; font-size: 1.3em; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-            🛡️ Análisis de Caso: Privado y Gratuito
+            🛡Orientación Jurídica: Confidencial y Gratuita
         </h3>
         <p style="font-size: 0.95em; line-height: 1.5; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
             No enfrente este proceso judicial a ciegas. Obtenga una evaluación experta sobre el estado de su familiar.
@@ -121,7 +144,10 @@
     <h4 style="margin:0; color: var(--primary)">🔒 Consultoría Privada</h4>
     
     <div id="registro-consulta">
-        <input type="text" id="priv-nombre" class="admin-input" placeholder="Nombre completo / Seudonimo /Alias">
+        <input type="text" id="priv-nombre" class="estilo-input" placeholder="Tu nombre/pseudonimo/Alias">
+<input type="tel" id="priv-telefono" class="estilo-input" placeholder="Tu teléfono (opcional)">
+
+
         <select id="priv-motivo" class="admin-input">
             <option value="">¿Motivo de la consulta?</option>
             <option value="Familiar recién detenido">Tengo un familiar recién detenido</option>
@@ -136,7 +162,7 @@
             <option value="Información de familiar">Necesito información sobre un familiar detenido</option>
             <option value="Otros motivos">Otros motivos</option>
         </select>
-        <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT</button>
+        <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT EN VIVO CON UN ABOGADO</button>
     </div>
 
     <div id="interfaz-chat-privado" style="display: none; margin-top: 20px;">
@@ -187,6 +213,13 @@
         <input type="text" id="adm-abg-nom" class="admin-input" placeholder="Nombre (ej. Dra. Ana Silva)">
         <input type="text" id="adm-abg-tel" class="admin-input" placeholder="WhatsApp (ej. 584140000000 sin el +)">
         <button onclick="guardarAbogado()" style="width:100%; background:#00796b; color:white; padding:10px; border:none; border-radius:5px;">Añadir Abogado al Equipo</button>
+        <div id="seccion-contactos" style="margin-top:20px; background:#e3f2fd; padding:10px; border-radius:10px;">
+    <h4 style="margin:0; color:#1565c0;">📁 Historial de Contactos (Prospectos)</h4>
+    <div id="lista-contactos-historicos" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: #fff;">
+        </div>
+    </div>
+    <div id="lista-contactos-historicos"></div>
+
         
         <div id="seccion-alertas" style="margin-top:20px; background:#f8d7da; padding:10px; border-radius:10px;">
             <h4 style="margin:0; color:#721c24;">🚨 ALERTAS EN VIVO</h4>
@@ -284,12 +317,18 @@ document.getElementById('main-header').onclick = () => {
     }
 };
 
-function enviarAlertaTelegram(cliente, motivo) {
+function enviarAlertaTelegram(cliente, motivo, esMensaje = false) {
     const TELEGRAM_TOKEN = "8017218933:AAEyBytMfs9MQ4avkjquRR1gOuKp-K4RDk8";
     const TELEGRAM_CHAT_ID = "8377293331"; 
-    const texto = `🚨 *ALERTA APP*\n👤 Cliente: ${cliente}\n⚖️ Motivo: ${motivo}`;
+    
+    // Si esMensaje es true, enviamos el formato corto. Si es false, el de registro.
+    const texto = esMensaje 
+        ? `💬 Mensaje de ${cliente}` 
+        : `🚨 *ALERTA APP*\n👤 Cliente: ${cliente}\n⚖️ Motivo: ${motivo}`;
+
     fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(texto)}&parse_mode=Markdown`);
 }
+
 
 function activarMotorAdmin() {
     db.ref("consultas_privadas").on("value", snapshot => {
@@ -299,6 +338,7 @@ function activarMotorAdmin() {
         const panelAlerta = document.getElementById('panel-emergencias-admin');
         const seccionContenedora = document.getElementById('seccion-alertas');
         let pendientes = 0;
+        cargarHistorialContactos();
         if (!consultas) { seccionContenedora.style.display = 'none'; panelAlerta.style.display = 'none'; return; }
         seccionContenedora.style.display = 'block';
         listaDiv.innerHTML = `<button onclick="eliminarTodoSeguro()" style="width:100%; background:#333; color:white; border:none; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer;">🗑️ ELIMINAR TODAS LAS CONSULTAS</button>`;
@@ -314,30 +354,50 @@ function activarMotorAdmin() {
         }
         document.getElementById('contador-pendientes').innerText = pendientes;
         if (pendientes > 0) { panelAlerta.style.display = 'block'; alarmaAdmin.play().catch(e=>0); } else { panelAlerta.style.display = 'block'; alarmaAdmin.pause(); alarmaAdmin.currentTime = 0; }
+        
     });
 }
 
 function iniciarConsulta() {
     const nombre = document.getElementById('priv-nombre').value;
+    const telefono = document.getElementById('priv-telefono').value || "No indicado";
     const motivo = document.getElementById('priv-motivo').value;
     
-    // Intentamos recuperar un ID existente en memoria local
+    // 1. Intentamos recuperar un ID existente en memoria local
     let idGuardado = localStorage.getItem('id_consulta_activa');
     
     if(idGuardado) {
+        // Caso: El usuario ya tiene una sesión abierta
         consultaActualId = idGuardado;
     } else if(nombre && motivo) {
+        // Caso: Nueva consulta
         consultaActualId = "CONSULTA_" + Date.now();
-        localStorage.setItem('id_consulta_activa', consultaActualId); // Guardamos el ID de forma persistente
+        localStorage.setItem('id_consulta_activa', consultaActualId); // Guardamos el ID
         
+        // A) Guardamos la consulta para el chat en vivo
         const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
-        refConsulta.set({ cliente: nombre, motivo: motivo, timestamp: Date.now(), estado: "pendiente" });
+        refConsulta.set({ 
+            cliente: nombre, 
+            motivo: motivo, 
+            timestamp: Date.now(), 
+            estado: "pendiente" 
+        });
+
+        // B) NUEVO: Guardamos el contacto en la base de datos de prospectos (permanente)
+        db.ref("base_contactos/" + consultaActualId).set({
+            nombre: nombre,
+            telefono: telefono,
+            motivo: motivo,
+            fecha_registro: Date.now(),
+            chat_id: consultaActualId
+        });
+        enviarAlertaTelegram(nombre, motivo, false);
     } else {
         alert("Por favor, complete sus datos.");
         return;
     }
 
-    // --- INTERFAZ Y ESCUCHA ---
+    // 2. --- INTERFAZ Y ESCUCHA ---
     document.getElementById('registro-consulta').style.display = 'none';
     document.getElementById('interfaz-chat-privado').style.display = 'block';
 
@@ -351,8 +411,10 @@ function iniciarConsulta() {
             btnWa.innerText = `IR AL WHATSAPP DE ${data.abogadoNombre.toUpperCase()}`;
         }
     });
+    
     escucharMensajesPrivados();
 }
+
 
 
 function atenderConsulta(id) {
@@ -381,7 +443,7 @@ function escucharMensajesPrivados() {
     listenerPrivado.on("child_added", s => {
         const data = s.val();
         const emisorAdmin = data.emisor.includes("Dr") || data.emisor.includes("Abg");
-        if (!emisorAdmin && !esAdmin) enviarAlertaTelegram(`MENSAJE`, data.texto);
+        if (!emisorAdmin && !esAdmin) enviarAlertaTelegram("un cliente", "", true);
         const bg = ( (esAdmin && !emisorAdmin) || (!esAdmin && emisorAdmin) ) ? "#d1f5d3" : "#f1f3f9";
         let contenido = data.tipo === 'audio' ? `<audio controls controlsList="nodownload" oncontextmenu="return false;" src="${data.contenido}"></audio>` : (data.tipo === 'imagen' ? `<img src="${data.contenido}" style="max-width:100%">` : data.texto);
         box.innerHTML += `<div class="msg" style="background:${bg};"><b>${data.emisor}:</b><br>${contenido}</div>`;
@@ -433,7 +495,20 @@ function guardarOrg() { const n = document.getElementById('adm-org-nom'); const 
 function guardarTip() { const t = document.getElementById('adm-tip-tit'); const txt = document.getElementById('adm-tip-txt'); if(t.value && txt.value) db.ref("tips_familiares").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Publicado"); }); }
 function guardarServicio() { const n = document.getElementById('adm-srv-nom'); const d = document.getElementById('adm-srv-desc'); const t = document.getElementById('adm-srv-tel'); if(n.value && d.value && t.value) db.ref("servicios").push({ nombre: n.value, desc: d.value, tel: t.value }).then(() => { alert("Publicado"); }); }
 function guardarAbogado() { const pin = document.getElementById('adm-abg-pin').value; const nom = document.getElementById('adm-abg-nom').value; const tel = document.getElementById('adm-abg-tel').value; if(pin && nom && tel) { db.ref("equipo_legal/" + pin).set({ nombre: nom, telefono: tel }); alert("Colega registrado."); } }
-function cerrarSesionAdmin() { localStorage.removeItem('admin_activo'); location.reload(); }
+function cerrarSesionAdmin() {
+    // 1. Limpiamos el localStorage para que al recargar no detecte admin
+    localStorage.removeItem('admin_activo');
+    
+    // 2. Forzamos el estado de las variables
+    esAdmin = false;
+    
+    // 3. Ocultamos explícitamente los elementos de admin
+    document.getElementById('admin-panel').style.display = 'none';
+    
+    // 4. Recargamos la página para limpiar todo el estado de la memoria
+    location.reload(); 
+}
+
 function eliminarTodoSeguro() { if (confirm("¿Seguro?")) db.ref("consultas_privadas").remove(); }
 function borrarCasoSeguro(id) {
     db.ref("consultas_privadas/" + id).remove().then(() => {
@@ -460,6 +535,49 @@ window.onload = () => {
         escucharMensajesPrivados();
     }
 };
+function cargarHistorialContactos() {
+    db.ref("base_contactos").on("value", s => {
+        const box = document.getElementById("lista-contactos-historicos");
+        box.innerHTML = "";
+        s.forEach(c => {
+            const d = c.val();
+            const id = c.key;
+            
+            box.innerHTML += `
+                <div style="border-bottom: 2px solid #eee; padding: 10px; margin-bottom: 10px;">
+                    <b>👤 ${d.nombre}</b> <small>(${d.telefono})</small><br>
+                    <small>📅 ${new Date(d.fecha_registro).toLocaleString()}</small><br>
+                    <p>Motivo: ${d.motivo}</p>
+                    
+                    <textarea id="resumen_${id}" placeholder="Escribe un resumen aquí...">${d.resumen_abogado || ''}</textarea>
+                    <button onclick="guardarResumen('${id}')">Guardar Resumen</button>
+                    
+                    <button onclick="borrarProspecto('${id}')" style="background:red; color:white;">Eliminar</button>
+                </div>`;
+        });
+    });
+}
+
+function guardarResumen(id) {
+    const resumen = document.getElementById('resumen_' + id).value;
+    db.ref("base_contactos/" + id + "/resumen_abogado").set(resumen);
+    alert("Resumen guardado.");
+}
+
+function borrarProspecto(id) {
+    if(confirm("¿Eliminar contacto definitivamente?")) {
+        db.ref("base_contactos/" + id).remove();
+    }
+}
+// Deshabilitar selección de texto, clic derecho y arrastre
+const chatBox = document.getElementById('interfaz-chat-privado');
+if (chatBox) {
+    chatBox.onselectstart = () => false; // Evita seleccionar texto
+    chatBox.oncontextmenu = () => false; // Evita clic derecho
+    chatBox.ondragstart = () => false;   // Evita arrastrar imágenes
+}
+
+
 
 </script>
 </body>
