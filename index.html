@@ -101,6 +101,12 @@
             🔒 HABLAR CON UN ABOGADO AHORA
         </button>
     </div>
+<div id="cintillo-noticias" style="background: #1a237e; color: white; padding: 10px; overflow: hidden; white-space: nowrap; margin-top: 10px; border-radius: 5px;">
+    <marquee id="texto-noticias" scrollamount="5">
+        Cargando noticias...
+    </marquee>
+</div>
+
     <div class="nav-grid">
         <div class="nav-item" onclick="showView('view-org')">🏛️ Organismos e<br>Instituciones</div>
         <div class="nav-item" onclick="showView('view-proceso')">⚖️ Conozca el<br>Proceso Penal</div>
@@ -200,6 +206,13 @@
 
     <div id="admin-panel">
         <h3>Panel Administrador</h3>
+        <div style="margin-top: 20px; background: #eee; padding: 15px; border-radius: 8px;">
+    <h4>Administrar Noticias</h4>
+    <input type="text" id="nueva-noticia" placeholder="Escribir noticia..." style="width: 100%; padding: 8px;">
+    <button onclick="guardarNoticia()" style="margin-top: 5px;">Publicar Noticia</button>
+    <div id="lista-noticias-admin" style="margin-top: 10px;"></div>
+</div>
+
         <input type="text" id="adm-proc-tit" class="admin-input" placeholder="Título de la Fase">
         <textarea id="adm-proc-txt" class="admin-input" placeholder="Explicación jurídica..."></textarea>
         <button onclick="guardarProc()" style="width:100%; background:var(--purple); color:white; padding:10px; border:none; border-radius:5px;">Publicar en Academia</button>
@@ -587,6 +600,42 @@ if (chatBox) {
     chatBox.ondragstart = () => false;   // Evita arrastrar imágenes
 }
 
+// A. Guardar noticia en Firebase
+function guardarNoticia() {
+    const texto = document.getElementById('nueva-noticia').value;
+    if(texto) {
+        db.ref("noticias").push({ texto: texto, fecha: Date.now() });
+        document.getElementById('nueva-noticia').value = "";
+    }
+}
+
+// B. Mostrar noticias en el cintillo (se ejecuta al cargar la página)
+db.ref("noticias").on("value", s => {
+    const cintillo = document.getElementById("texto-noticias");
+    let html = "";
+    s.forEach(n => {
+        const val = n.val();
+        html += ` ${val.texto} | `;
+    });
+    cintillo.innerHTML = html || "Bienvenidos a Privados - Auxilio Legal";
+});
+
+// C. Cargar noticias en el panel admin para poder borrarlas
+db.ref("noticias").on("value", s => {
+    const lista = document.getElementById("lista-noticias-admin");
+    lista.innerHTML = "";
+    s.forEach(n => {
+        lista.innerHTML += `
+            <div style="margin:5px; background:white; padding:5px;">
+                ${n.val().texto} 
+                <button onclick="borrarNoticia('${n.key}')">X</button>
+            </div>`;
+    });
+});
+
+function borrarNoticia(key) {
+    db.ref("noticias/" + key).remove();
+}
 
 
 </script>
