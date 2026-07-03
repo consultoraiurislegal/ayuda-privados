@@ -162,8 +162,18 @@
             <option value="Información de familiar">Necesito información sobre un familiar detenido</option>
             <option value="Otros motivos">Otros motivos</option>
         </select>
+        <div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; color: #555; line-height: 1.5; text-align: left;">
+    <p style="margin: 0 0 10px 0; display: flex; align-items: flex-start; gap: 8px;">
+        <span>🔒</span> <b>Sesión Protegida:</b> Puede cerrar esta ventana y regresar sin perder su conversación, siempre que no finalice el chat oficialmente.
+    </p>
+    <p style="margin: 0; display: flex; align-items: flex-start; gap: 8px;">
+        <span>🛡️</span> <b>Secreto Profesional:</b> Al concluir la atención por parte del abogado, toda la información será eliminada permanentemente tanto de su dispositivo como de nuestros sistemas, garantizando la total confidencialidad de su caso.
+    </p>
+</div>
         <button onclick="iniciarConsulta()" class="btn-private" style="margin-top:0;">INICIAR CHAT EN VIVO CON UN ABOGADO</button>
     </div>
+    
+
 
     <div id="interfaz-chat-privado" style="display: none; margin-top: 20px;">
         <div id="private-messages" style="height: 300px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; padding: 5px; position: relative;"></div>
@@ -434,7 +444,7 @@ function escucharMensajesPrivados() {
     refConsulta.on('value', s => {
     if (!s.exists()) { 
         localStorage.removeItem('id_consulta_activa'); // Limpiamos el guardado
-        alert("⚠️ El chat ha sido cerrado."); 
+        alert("⚠️ Hemos cerrado el chat con el fin de resguardar su seguridad y garantizar la confidencialidad de nuestra comunicación. Toda la información ha sido eliminada para cumplir con el secreto profesional entre abogado y cliente. Estamos aquí para cuando vuelva a necesitarnos."); 
         location.reload(); 
     }
 });
