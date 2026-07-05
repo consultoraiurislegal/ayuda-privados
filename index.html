@@ -113,6 +113,9 @@
         <div class="nav-item" onclick="showView('view-videos')">💡 Tips para Familiares<br><span style="font-size: 0.8em; font-weight: normal;">de Privados de Libertad</span></div>
         <div class="nav-item" onclick="showView('view-servicios')">💼 Publicidad y<br>Servicios</div>
     </div>
+    <button id="btn-cliente-juris" onclick="mostrarLoginCliente()" style="width:100%; margin-top:10px; background:#455a64; color:white; padding:10px; border:none; border-radius:8px; font-weight:bold;">
+    👤 YA SOY CLIENTE DE CONSULTORA JURIS
+</button>
 </div>
 
 <div id="view-proceso" class="view">
@@ -143,7 +146,21 @@
     <h2 style="color: #1565c0;">💼 Directorio de Servicios</h2>
     <p style="font-size:0.9em; color:#555; margin-top:-10px; margin-bottom:15px;">Servicios útiles de paquetería, almuerzos, encomiendas y traslados cerca de los centros de reclusión.</p>
     <div id="lista-servicios"></div>
+    
 </div>
+
+
+<div id="login-cliente" style="display:none; margin-top:20px; padding:20px; background:#fff; border-radius:10px;">
+    <input type="text" id="cedula-privado" placeholder="Número de cédula (Ej: V-12345678)" style="width:90%; padding:10px; margin-bottom:10px;">
+    <input type="password" id="clave-privado" placeholder="Clave de acceso" style="width:90%; padding:10px; margin-bottom:10px;">
+    <button onclick="validarCliente()" style="width:100%; padding:10px; background:#1a237e; color:white; border:none;">INGRESAR</button>
+</div>
+
+<div id="historial-caso" style="display:none; margin-top:20px; padding:20px; background:#e8f5e9; border-radius:10px;">
+    <h3>Historial del Caso</h3>
+    <div id="lista-eventos"></div>
+</div>
+
 
 <div id="view-chat-privado" class="view">
     <button onclick="showView('view-home')" style="margin-bottom:15px;">← Volver</button>
@@ -236,12 +253,21 @@
         <input type="text" id="adm-abg-nom" class="admin-input" placeholder="Nombre (ej. Dra. Ana Silva)">
         <input type="text" id="adm-abg-tel" class="admin-input" placeholder="WhatsApp (ej. 584140000000 sin el +)">
         <button onclick="guardarAbogado()" style="width:100%; background:#00796b; color:white; padding:10px; border:none; border-radius:5px;">Añadir Abogado al Equipo</button>
-        <div id="seccion-contactos" style="margin-top:20px; background:#e3f2fd; padding:10px; border-radius:10px;">
-    <h4 style="margin:0; color:#1565c0;">📁 Historial de Contactos (Prospectos)</h4>
-    <div id="lista-contactos-historicos" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: #fff;">
-        </div>
-    </div>
-    <div id="lista-contactos-historicos"></div>
+        <hr>
+<h4 style="color:#2e7d32;">📂 Gestión de Expedientes</h4>
+<input type="text" id="adm-buscar-cedula" class="admin-input" placeholder="Ingresa Cédula para cargar expediente">
+<button onclick="cargarExpedienteAdmin()" style="background:#2e7d32; color:white; width:100%; padding:10px; border:none;">CARGAR EXPEDIENTE</button>
+
+<div id="contenedor-expediente-admin" style="display:none; background:#f9f9f9; padding:15px; border-radius:8px;">
+    <h4 id="titulo-expediente">Expediente de: </h4>
+    <div id="lista-eventos-admin" style="max-height:300px; overflow-y:auto; border:1px solid #ccc; margin-bottom:10px;"></div>
+    
+    <textarea id="nueva-nota-admin" placeholder="Nueva nota..." class="admin-input"></textarea>
+    <input type="file" id="subir-foto-admin" accept="image/*">
+    <button onclick="agregarAlExpediente()" style="background:#1a237e; color:white; width:100%; padding:10px;">GUARDAR EN EXPEDIENTE</button>
+</div>
+
+
 
         
         <div id="seccion-alertas" style="margin-top:20px; background:#f8d7da; padding:10px; border-radius:10px;">
@@ -303,10 +329,37 @@ const alarmaAdmin = new Audio('https://assets.mixkit.co/active_storage/sfx/951/9
 alarmaAdmin.loop = true;
 
 function showView(id) {
+    // 1. Ocultar todas las vistas principales
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
-    document.getElementById(id).classList.add('active-view');
-    window.scrollTo(0,0);
+    
+    // 2. Mostrar la vista seleccionada
+    const vista = document.getElementById(id);
+    if (vista) vista.classList.add('active-view');
+    
+    // 3. Limpieza de elementos accesorios
+    document.getElementById('login-cliente').style.display = 'none';
+    document.getElementById('historial-caso').style.display = 'none';
+    
+    // 4. Lógica de visibilidad del botón Gris (Ya soy cliente)
+    const btnCliente = document.getElementById('btn-cliente-juris');
+    if (btnCliente) {
+        btnCliente.style.display = (id === 'view-home') ? 'block' : 'none';
+    }
+
+    // 5. FIX CRÍTICO: Si entramos al chat, aseguramos que el formulario de registro se vea
+    if (id === 'view-chat-privado') {
+        // Solo mostramos el registro si NO hay una consulta activa guardada en local
+        if (!localStorage.getItem('id_consulta_activa')) {
+            document.getElementById('registro-consulta').style.display = 'block';
+            document.getElementById('interfaz-chat-privado').style.display = 'none';
+        }
+    }
+    
+    window.scrollTo(0, 0);
 }
+
+
+
 
 let t = 0;
 let equipoLegalDinamico = {};
@@ -420,8 +473,7 @@ function iniciarConsulta() {
         return;
     }
 
-    // 2. --- INTERFAZ Y ESCUCHA ---
-    document.getElementById('registro-consulta').style.display = 'none';
+ document.getElementById('registro-consulta').style.display = 'none';
     document.getElementById('interfaz-chat-privado').style.display = 'block';
 
     const refConsulta = db.ref("consultas_privadas/" + consultaActualId);
@@ -635,6 +687,162 @@ db.ref("noticias").on("value", s => {
 
 function borrarNoticia(key) {
     db.ref("noticias/" + key).remove();
+}
+function mostrarLoginCliente() {
+    // 1. Ocultamos el registro de consulta si estuviera visible
+    document.getElementById('registro-consulta').style.display = 'none';
+    
+    // 2. Obtenemos el elemento correctamente
+    const loginDiv = document.getElementById('login-cliente');
+    
+    // 3. Lo hacemos visible
+    loginDiv.style.display = 'block';
+    
+    // 4. Ejecutamos el scroll sobre la variable que acabamos de definir
+    loginDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+
+function validarCliente() {
+    const cedula = document.getElementById('cedula-privado').value.trim();
+    const clave = document.getElementById('clave-privado').value.trim();
+
+    db.ref("seguimiento_casos/" + cedula).once("value", s => {
+        if(s.exists() && s.val().clave === clave) {
+          notificarLoginTelegram(cedula);
+            document.getElementById('login-cliente').style.display = 'none';
+            document.getElementById('historial-caso').style.display = 'block';
+            cargarHistorial(cedula);
+        } else {
+            alert("Acceso denegado: Cédula o clave incorrecta.");
+        }
+    });
+}
+
+function cargarHistorial(cedula) {
+    db.ref("seguimiento_casos/" + cedula + "/actualizaciones").on("value", s => {
+        const lista = document.getElementById("lista-eventos");
+        lista.innerHTML = "";
+        s.forEach(item => {
+            const ev = item.val();
+            let contenido = ev.tipo === 'imagen' ? `<img src="${ev.nota}" style="width:100%; border-radius:8px;">` : `<p>${ev.nota}</p>`;
+            lista.innerHTML += `<div style="padding:10px; border-bottom:1px solid #ccc;">
+                <b>${ev.fecha}</b><br>${contenido}
+            </div>`;
+        });
+    });
+}
+
+// Guardar nuevo cliente desde admin
+function guardarClienteAdmin() {
+    const cedula = document.getElementById('adm-cl-ced').value.trim();
+    const clave = document.getElementById('adm-cl-pas').value.trim();
+    if(cedula && clave) {
+        db.ref("seguimiento_casos/" + cedula).set({ clave: clave, fecha_creacion: Date.now() })
+          .then(() => alert("Cliente registrado exitosamente"));
+    }
+}
+
+// Cargar y gestionar clientes en el admin
+db.ref("seguimiento_casos").on("value", s => {
+    const lista = document.getElementById("lista-clientes-admin");
+    lista.innerHTML = "<h5>Clientes actuales:</h5>";
+    s.forEach(c => {
+        lista.innerHTML += `
+            <div style="border-bottom:1px solid #ccc; padding:5px;">
+                <b>${c.key}</b> 
+                <button onclick="borrarCliente('${c.key}')" style="background:red; color:white; border:none;">X</button>
+                <input type="text" id="hist_${c.key}" placeholder="Nueva nota">
+                <button onclick="agregarHistorial('${c.key}')">Add Nota</button>
+            </div>`;
+    });
+});
+
+function borrarCliente(cedula) {
+    if(confirm("¿Borrar cliente?")) db.ref("seguimiento_casos/" + cedula).remove();
+}
+
+function agregarHistorial(cedula) {
+    const nota = document.getElementById('hist_' + cedula).value;
+    if(nota) {
+        db.ref("seguimiento_casos/" + cedula + "/actualizaciones").push({
+            fecha: new Date().toLocaleDateString(),
+            nota: nota
+        }).then(() => alert("Historial actualizado"));
+    }
+}
+function restablecerInterfaz() {
+    // Ocultar todo lo que no sea la pantalla de inicio principal
+    document.getElementById('registro-consulta').style.display = 'none';
+    document.getElementById('login-cliente').style.display = 'none';
+    document.getElementById('historial-caso').style.display = 'none';
+    
+    // Asegurar que el botón de inicio de "Ya soy cliente" esté visible
+    document.getElementById('btn-cliente-juris').style.display = 'block';
+}
+function notificarLoginTelegram(cedula) {
+    const TELEGRAM_TOKEN = "8017218933:AAEyBytMfs9MQ4avkjquRR1gOuKp-K4RDk8";
+    const TELEGRAM_CHAT_ID = "8377293331"; 
+    const texto = `👤 Un cliente acaba de iniciar sesión: ${cedula}`;
+    
+    fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(texto)}&parse_mode=Markdown`);
+}
+// Función para cargar expediente por cédula sin contraseña
+function cargarExpedienteAdmin() {
+    const cedula = document.getElementById('adm-buscar-cedula').value.trim();
+    if(!cedula) return;
+    
+    document.getElementById('contenedor-expediente-admin').style.display = 'block';
+    document.getElementById('titulo-expediente').innerText = "Expediente de: " + cedula;
+    
+    db.ref("seguimiento_casos/" + cedula + "/actualizaciones").on("value", s => {
+        const lista = document.getElementById("lista-eventos-admin");
+        lista.innerHTML = "";
+        s.forEach(item => {
+            const ev = item.val();
+            const id = item.key;
+            let contenido = ev.tipo === 'imagen' ? `<img src="${ev.nota}" style="width:100px; display:block;">` : `<p>${ev.nota}</p>`;
+            
+            lista.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee;">
+                <b>${ev.fecha}</b> ${contenido}
+                <button onclick="eliminarEntradaExpediente('${cedula}', '${id}')" style="background:red; color:white; border:none; padding:2px 5px;">Eliminar</button>
+            </div>`;
+        });
+    });
+}
+
+// Función para guardar texto o imagen
+function agregarAlExpediente() {
+    const cedula = document.getElementById('adm-buscar-cedula').value.trim();
+    const nota = document.getElementById('nueva-nota-admin').value;
+    const file = document.getElementById('subir-foto-admin').files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            guardarEnFirebase(cedula, e.target.result, 'imagen');
+        };
+        reader.readAsDataURL(file);
+    } else if (nota) {
+        guardarEnFirebase(cedula, nota, 'texto');
+    }
+}
+
+function guardarEnFirebase(cedula, contenido, tipo) {
+    db.ref("seguimiento_casos/" + cedula + "/actualizaciones").push({
+        fecha: new Date().toLocaleDateString(),
+        nota: contenido,
+        tipo: tipo
+    }).then(() => {
+        alert("Actualizado correctamente");
+        document.getElementById('nueva-nota-admin').value = "";
+    });
+}
+
+function eliminarEntradaExpediente(cedula, id) {
+    if(confirm("¿Borrar esta entrada?")) {
+        db.ref("seguimiento_casos/" + cedula + "/actualizaciones/" + id).remove();
+    }
 }
 
 
