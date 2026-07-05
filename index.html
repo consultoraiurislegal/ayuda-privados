@@ -114,7 +114,7 @@
         <div class="nav-item" onclick="showView('view-servicios')">💼 Publicidad y<br>Servicios</div>
     </div>
     <button id="btn-cliente-juris" onclick="mostrarLoginCliente()" style="width:100%; margin-top:10px; background:#455a64; color:white; padding:10px; border:none; border-radius:8px; font-weight:bold;">
-    👤 YA SOY CLIENTE DE CONSULTORA JURIS
+    👤 YA SOY CLIENTE DE CONSULTORA IURIS
 </button>
 </div>
 
@@ -734,9 +734,9 @@ function cargarHistorial(cedula) {
         s.forEach(item => {
             const ev = item.val();
             let contenido = ev.tipo === 'imagen' ? `<img src="${ev.nota}" style="width:100%; border-radius:8px;">` : `<p>${ev.nota}</p>`;
-            lista.innerHTML += `<div style="padding:10px; border-bottom:1px solid #ccc;">
+            lista.innerHTML = `<div style="padding:10px; border-bottom:1px solid #ccc;">
                 <b>${ev.fecha}</b><br>${contenido}
-            </div>`;
+            </div>` + lista.innerHTML;
         });
     });
 }
