@@ -730,13 +730,15 @@ function validarCliente() {
 function cargarHistorial(cedula) {
     db.ref("seguimiento_casos/" + cedula + "/actualizaciones").on("value", s => {
         const lista = document.getElementById("lista-eventos");
-        lista.innerHTML = "";
-        s.forEach(item => {
-            const ev = item.val();
-            let contenido = ev.tipo === 'imagen' ? `<img src="${ev.nota}" style="width:100%; border-radius:8px;">` : `<p>${ev.nota}</p>`;
-            lista.innerHTML = `<div style="padding:10px; border-bottom:1px solid #ccc;">
-                <b>${ev.fecha}</b><br>${contenido}
-            </div>` + lista.innerHTML;
+       // Cambia el bloque del forEach en la función cargarHistorial (o donde hayas hecho el cambio) por esto:
+s.forEach(item => {
+    const ev = item.val();
+    let contenido = ev.tipo === 'imagen' ? `<img src="${ev.nota}" style="width:100%; border-radius:8px;">` : `<p>${ev.nota}</p>`;
+    
+    // Esta es la forma correcta de insertar al principio de la lista
+    lista.innerHTML = `<div style="padding:10px; border-bottom:1px solid #ccc;">
+        <b>${ev.fecha}</b><br>${contenido}
+    </div>` + lista.innerHTML;
         });
     });
 }
