@@ -265,8 +265,6 @@
 <input type="text" id="adm-cl-pas" class="admin-input" placeholder="Contraseña asignada">
 <button onclick="guardarClienteAdmin()" style="background:#2e7d32; color:white; width:100%; padding:10px; border:none; margin-bottom:10px;">REGISTRAR CLIENTE</button>
 <hr>
-<div id="lista-clientes-admin" style="margin-top: 15px; background: #fff; padding: 10px; border-radius: 8px;"></div>
-
 <h4 style="color:#2e7d32;">📂 Gestión de Expedientes</h4>
 <input type="text" id="adm-buscar-cedula" class="admin-input" placeholder="Ingresa Cédula para cargar expediente">
 <button onclick="cargarExpedienteAdmin()" style="background:#2e7d32; color:white; width:100%; padding:10px; border:none;">CARGAR EXPEDIENTE</button>
@@ -773,19 +771,7 @@ function guardarClienteAdmin() {
 }
 
 // Cargar y gestionar clientes en el admin
-db.ref("seguimiento_casos").on("value", s => {
-    const lista = document.getElementById("lista-clientes-admin");
-    lista.innerHTML = "<h5>Clientes actuales:</h5>";
-    s.forEach(c => {
-        lista.innerHTML += `
-            <div style="border-bottom:1px solid #ccc; padding:5px;">
-                <b>${c.key}</b> 
-                <button onclick="borrarCliente('${c.key}')" style="background:red; color:white; border:none;">X</button>
-                <input type="text" id="hist_${c.key}" placeholder="Nueva nota">
-                <button onclick="agregarHistorial('${c.key}')">Add Nota</button>
-            </div>`;
-    });
-});
+
 
 function borrarCliente(cedula) {
     if(confirm("¿Borrar cliente?")) db.ref("seguimiento_casos/" + cedula).remove();
