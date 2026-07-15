@@ -751,8 +751,24 @@ function cargarHistorial(cedula) {
         
         s.forEach(item => {
             const ev = item.val();
-            let contenido = ev.tipo === 'imagen' ? `<img src="${ev.nota}" style="width:100%; border-radius:8px;">` : `<p>${ev.nota}</p>`;
+           function cargarHistorial(cedula) {
+    db.ref("seguimiento_casos/" + cedula + "/actualizaciones").off(); 
+    db.ref("seguimiento_casos/" + cedula + "/actualizaciones").on("value", s => {
+        const lista = document.getElementById("lista-eventos");
+        let htmlAcumulado = ""; 
+        
+        s.forEach(item => {
+            const ev = item.val();
+            // --- CAMBIO AQUÍ: Usamos formatearNota en lugar de <p>${ev.nota}</p> ---
+            let contenido = ev.tipo === 'imagen' ? `<img src="${ev.nota}" style="width:100%; border-radius:8px;">` : formatearNota(ev.nota);
+            
             htmlAcumulado = `<div style="padding:10px; border-bottom:1px solid #ccc;"><b>${ev.fecha}</b><br>${contenido}</div>` + htmlAcumulado;
+        });
+        
+        lista.innerHTML = htmlAcumulado;
+    });
+}
+
         });
         
         lista.innerHTML = htmlAcumulado; // Un solo renderizado
@@ -883,6 +899,18 @@ function cargarDirectorioOrganismos() {
             contenedor.innerHTML = "<p>No hay organismos registrados actualmente.</p>";
         }
     });
+}
+// Esta función detecta cualquier URL y la convierte en un enlace clicable
+function formatearNota(texto) {
+    // Expresión regular para buscar URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    
+    // Si encuentra una URL, la reemplaza por un enlace, si no, deja el texto igual
+    const textoConEnlaces = texto.replace(urlRegex, (url) => {
+        return `<a href="${url}" target="_blank" style="color: blue; text-decoration: underline;">${url}</a>`;
+    });
+    
+    return `<p>${textoConEnlaces}</p>`;
 }
 
 
