@@ -744,36 +744,33 @@ function validarCliente() {
     });
 }
 function cargarHistorial(cedula) {
-    db.ref("seguimiento_casos/" + cedula + "/actualizaciones").off(); // Limpiar
-    db.ref("seguimiento_casos/" + cedula + "/actualizaciones").on("value", s => {
-        const lista = document.getElementById("lista-eventos");
-        let htmlAcumulado = ""; // Variable temporal
-        
-        s.forEach(item => {
-            const ev = item.val();
-           function cargarHistorial(cedula) {
+    const lista = document.getElementById("lista-eventos");
+    lista.innerHTML = "Cargando historial..."; // Feedback visual inmediato
+    
     db.ref("seguimiento_casos/" + cedula + "/actualizaciones").off(); 
     db.ref("seguimiento_casos/" + cedula + "/actualizaciones").on("value", s => {
-        const lista = document.getElementById("lista-eventos");
-        let htmlAcumulado = ""; 
+        lista.innerHTML = ""; // Limpiar el mensaje de carga
         
+        if (!s.exists()) {
+            lista.innerHTML = "<p>No hay actualizaciones disponibles.</p>";
+            return;
+        }
+
+        let htmlAcumulado = ""; 
         s.forEach(item => {
             const ev = item.val();
-            // --- CAMBIO AQUÍ: Usamos formatearNota en lugar de <p>${ev.nota}</p> ---
-            let contenido = ev.tipo === 'imagen' ? `<img src="${ev.nota}" style="width:100%; border-radius:8px;">` : formatearNota(ev.nota);
+            let contenido = ev.tipo === 'imagen' ? 
+                `<img src="${ev.nota}" style="width:100%; border-radius:8px;">` : 
+                formatearNota(ev.nota);
             
-            htmlAcumulado = `<div style="padding:10px; border-bottom:1px solid #ccc;"><b>${ev.fecha}</b><br>${contenido}</div>` + htmlAcumulado;
+            htmlAcumulado = `<div style="padding:15px; border-bottom:1px solid #ccc; margin-bottom:10px;"><b>${ev.fecha}</b><br>${contenido}</div>` + htmlAcumulado;
         });
         
         lista.innerHTML = htmlAcumulado;
     });
 }
 
-        });
-        
-        lista.innerHTML = htmlAcumulado; // Un solo renderizado
-    });
-}
+
 
 
 // Guardar nuevo cliente desde admin
