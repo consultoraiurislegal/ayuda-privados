@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-J8HZH6G0ZX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-J8HZH6G0ZX');
+</script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privados - Auxilio Legal</title>
@@ -97,9 +107,10 @@
         <p style="font-size: 0.95em; line-height: 1.5; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
             No enfrente este proceso judicial a ciegas. Obtenga una evaluación experta sobre el estado de su familiar.
         </p>
-        <button onclick="showView('view-chat-privado')" class="btn-private btn-latido" style="position: relative; z-index: 20; font-size: 1.05em; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
-            🔒 HABLAR CON UN ABOGADO AHORA
-        </button>
+       <button onclick="gtag('event', 'click_consulta_abogado'); showView('view-chat-privado')" class="btn-private btn-latido" ...>
+    🔒 HABLAR CON UN ABOGADO AHORA
+</button>
+
     </div>
 <div id="cintillo-noticias" style="background: #1a237e; color: white; padding: 10px; overflow: hidden; white-space: nowrap; margin-top: 10px; border-radius: 5px;">
     <marquee id="texto-noticias" scrollamount="5">
@@ -593,8 +604,40 @@ function filtrar() { let val = document.getElementById('busqueda').value.toLower
 function guardarProc() { const t = document.getElementById('adm-proc-tit'); const txt = document.getElementById('adm-proc-txt'); if(t.value && txt.value) db.ref("proceso_penal").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Publicado"); }); }
 function guardarOrg() { const n = document.getElementById('adm-org-nom'); const i = document.getElementById('adm-org-tel'); if(n.value && i.value) db.ref("organismos").push({ nombre: n.value, info: i.value }).then(() => { alert("Guardado"); }); }
 function guardarTip() { const t = document.getElementById('adm-tip-tit'); const txt = document.getElementById('adm-tip-txt'); if(t.value && txt.value) db.ref("tips_familiares").push({ titulo: t.value, texto: txt.value }).then(() => { alert("Publicado"); }); }
-function guardarServicio() { const n = document.getElementById('adm-srv-nom'); const d = document.getElementById('adm-srv-desc'); const t = document.getElementById('adm-srv-tel'); if(n.value && d.value && t.value) db.ref("servicios").push({ nombre: n.value, desc: d.value, tel: t.value }).then(() => { alert("Publicado"); }); }
-function guardarAbogado() { const pin = document.getElementById('adm-abg-pin').value; const nom = document.getElementById('adm-abg-nom').value; const tel = document.getElementById('adm-abg-tel').value; if(pin && nom && tel) { db.ref("equipo_legal/" + pin).set({ nombre: nom, telefono: tel }); alert("Colega registrado."); } }
+
+function guardarServicio() {
+    // Referencia a los inputs
+    const nombre = document.getElementById('adm-srv-nom').value;
+    const desc = document.getElementById('adm-srv-desc').value;
+    const tel = document.getElementById('adm-srv-tel').value;
+
+    // Validar que no estén vacíos
+    if (nombre === "" || desc === "" || tel === "") {
+        alert("Por favor, llena todos los campos");
+        return;
+    }
+
+    // Guardar en Firebase
+    // Al usar .push(), Firebase creará automáticamente el nodo 'servicios' 
+    // y dentro asignará un ID único para cada registro[span_4](start_span)[span_4](end_span)
+    firebase.database().ref('servicios').push({
+        nombre: nombre,
+        desc: desc,
+        tel: tel
+    })
+    .then(() => {
+        alert("Servicio guardado exitosamente");
+        // Limpiar los inputs
+        document.getElementById('adm-srv-nom').value = "";
+        document.getElementById('adm-srv-desc').value = "";
+        document.getElementById('adm-srv-tel').value = "";
+    })
+    .catch((error) => {
+        console.error("Error al guardar: ", error);
+        alert("Hubo un problema al guardar el servicio");
+    });
+}
+
 function cerrarSesionAdmin() {
     // 1. Limpiamos el localStorage para que al recargar no detecte admin
     localStorage.removeItem('admin_activo');
