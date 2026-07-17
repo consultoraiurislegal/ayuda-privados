@@ -118,15 +118,23 @@
     </marquee>
 </div>
 
-    <div class="nav-grid">
-        <div class="nav-item" onclick="showView('view-org'); cargarDirectorioOrganismos();">
+    <div class="nav-item" onclick="gtag('event', 'click_organismos'); showView('view-org'); cargarDirectorioOrganismos();">
     🏛️ Organismos e<br>Instituciones
 </div>
 
-        <div class="nav-item" onclick="showView('view-proceso')">⚖️ Conozca el<br>Proceso Penal</div>
-        <div class="nav-item" onclick="showView('view-videos')">💡 Tips para Familiares<br><span style="font-size: 0.8em; font-weight: normal;">de Privados de Libertad</span></div>
-        <div class="nav-item" onclick="showView('view-servicios')">💼 Publicidad y<br>Servicios</div>
-    </div>
+
+        <div class="nav-item" onclick="gtag('event', 'click_proceso_penal'); showView('view-proceso')">
+    ⚖️ Conozca el<br>Proceso Penal
+</div>
+
+       <div class="nav-item" onclick="gtag('event', 'click_tips_familiares'); showView('view-videos')">
+    💡 Tips para Familiares<br><span style="font-size: 0.8em; font-weight: normal;">de Privados de Libertad</span>
+</div>
+
+       <div class="nav-item" onclick="gtag('event', 'click_servicios_publicidad'); showView('view-servicios')">
+    💼 Publicidad y<br>Servicios
+</div>
+
     <button id="btn-cliente-juris" onclick="mostrarLoginCliente()" style="width:100%; margin-top:10px; background:#455a64; color:white; padding:10px; border:none; border-radius:8px; font-weight:bold;">
     👤 YA SOY CLIENTE DE CONSULTORA IURIS
 </button>
