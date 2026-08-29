@@ -135,7 +135,7 @@
     💼 Publicidad y<br>Servicios
 </div>
 
-    <button id="btn-cliente-juris" onclick="mostrarLoginCliente()" style="width:100%; margin-top:10px; background:#455a64; color:white; padding:10px; border:none; border-radius:8px; font-weight:bold;">
+    <button id="btn-cliente-juris" onclick="window.location.href='portal-cliente.html'" style="width:100%; margin-top:10px; background:#455a64; color:white; padding:10px; border:none; border-radius:8px; font-weight:bold;">
     👤 YA SOY CLIENTE DE CONSULTORA IURIS
 </button>
 </div>
@@ -271,7 +271,10 @@
         <input type="text" id="adm-srv-nom" class="admin-input" placeholder="Nombre (ej. Inversiones María)">
         <input type="text" id="adm-srv-desc" class="admin-input" placeholder="¿Qué ofrece? (ej. Almuerzos y traslados al penal)">
         <input type="text" id="adm-srv-tel" class="admin-input" placeholder="WhatsApp del negocio (ej. 04141234567)">
-        <button onclick="guardarServicio()" style="width:100%; background:#1565c0; color:white; padding:10px; border:none; border-radius:5px;">Publicar Servicio</button>
+       <!-- En tu formulario de publicación -->
+<input type="text" id="link-foto" placeholder="Pega aquí el enlace de la imagen de Google Drive">
+<button onclick="guardarServicioDrive()">Publicar con Link Drive</button>
+
         <h4 style="margin-bottom:5px; color:#00796b;">👥 Registrar Colegas al Equipo</h4>
         <input type="text" id="adm-abg-pin" class="admin-input" placeholder="Crear PIN (ej. 5678)">
         <input type="text" id="adm-abg-nom" class="admin-input" placeholder="Nombre (ej. Dra. Ana Silva)">

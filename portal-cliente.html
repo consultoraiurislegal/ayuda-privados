@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Jurídico - Consultora Iuris</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root { --primary: #1a237e; --secondary: #c62828; --accent: #2e7d32; --bg: #f0f2f5; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
+        
+        header {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        header h1 { margin: 0; font-size: 1.5em; letter-spacing: 1px; }
+        header p { font-size: 0.85em; margin: 5px 0 0 0; opacity: 0.8; }
+
+        .container { max-width: 900px; margin: 20px auto; padding: 15px; }
+        .card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* Formularios y Botones */
+        .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .btn-principal { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        .btn-principal:hover { background: #303f9f; }
+        .btn-admin-guardar { background: var(--accent); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-admin-guardar:hover { background: #1b5e20; }
+        .btn-regresar { background: #78909c; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.9em; float: right; }
+
+        /* Vistas Generales */
+        #seccion-login { display: block; }
+        #seccion-portal { display: none; }
+        
+        /* Menú de Pestañas */
+        .tab-menu { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .tab-btn { background: #e0e0e0; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; color: #555; flex-grow: 1; text-align: center; font-size: 0.9em; }
+        .tab-btn:hover { background: #d5d5d5; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        
+        #btn-tab-admin { background: #ffecb3; color: #b71c1c; display: none; border: 1px solid #ffe082; }
+        #btn-tab-admin.active { background: #b71c1c; color: white; }
+
+        /* Contenido de Pestañas */
+        .tab-content { display: none; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; }
+        .tab-content.active { display: block; }
+        
+        .header-sesion { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;}
+        
+        .info-bloque { background: white; padding: 12px 15px; border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .info-bloque p { margin: 6px 0; font-size: 0.95em; }
+
+        /* Estilos para expedientes dinámicos */
+        .expediente-card { background: #fff; border: 1px solid #c5cae9; padding: 15px; border-radius: 8px; margin-bottom: 15px; position: relative; }
+        .btn-eliminar-exp { background: var(--secondary); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; font-size: 0.8em; }
+        .seccion-form { background: #ffffff; border: 1px solid #e0e0e0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .seccion-form h5 { margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .btn-secundario { background: #3949ab; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em; margin-bottom: 10px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        
+        .sub-seccion-dinamica { background: #fdfdfd; border: 1px dashed #b0bec5; padding: 10px; border-radius: 6px; margin-top: 8px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>CONSULTORA IURIS</h1>
+    <p>Portal de Gestión y Expedientes Judiciales</p>
+</header>
+
+<div class="container">
+
+    <!-- ================= PANTALLA DE LOGIN ================= -->
+    <div id="seccion-login" class="card">
+        <h3 style="color: var(--primary); margin-top: 0; text-align: center;">🔐 Acceso al Portal</h3>
+        <p style="text-align: center; font-size: 0.9em; color: #666; margin-bottom: 20px;">Ingrese sus credenciales (Administrador temporal: <b>admin</b> / <b>185576</b>)</p>
+        
+        <input type="text" id="login-usuario" class="input-field" placeholder="Usuario o Cédula">
+        <input type="password" id="login-clave" class="input-field" placeholder="Contraseña">
+        <button onclick="intentarIngresoPortal()" class="btn-principal">INGRESAR AL SISTEMA</button>
+    </div>
+
+
+    <!-- ================= PORTAL PRINCIPAL CON PESTAÑAS ================= -->
+    <div id="seccion-portal" class="card">
+        <div class="header-sesion">
+            <div>
+                <h3 id="titulo-usuario" style="margin:0; color: var(--primary);">Expediente: --</h3>
+                <small style="color: #666;" id="subtitulo-rol">Rol: --</small>
+            </div>
+            <button onclick="cerrarSesion()" class="btn-regresar">Cerrar Sesión</button>
+        </div>
+
+        <!-- Menú de Pestañas -->
+        <div class="tab-menu">
+            <button class="tab-btn active" id="btn-tab-info" onclick="cambiarPestaña(event, 'tab-info')">📁 1. Información General</button>
+            <button class="tab-btn" id="btn-tab-computos" onclick="cambiarPestaña(event, 'tab-computos')">⚖️ 2. Cómputos y Lapsos</button>
+            <button class="tab-btn" id="btn-tab-monitoreo" onclick="cambiarPestaña(event, 'tab-monitoreo')">📊 3. Seguimiento y Control</button>
+            <!-- 4ta Pestaña Exclusiva del Admin -->
+            <button class="tab-btn" id="btn-tab-admin" onclick="cambiarPestaña(event, 'tab-admin')">🛠️ 4. Panel Admin</button>
+        </div>
+
+        <!-- PESTAÑA 1: INFORMACIÓN GENERAL -->
+        <div id="tab-info" class="tab-content active">
+            <h4 style="color:var(--primary); margin-top:0;">📋 Información General del Caso</h4>
+            <div id="contenido-info-general">
+                <p style="color:#777;">Cargando información del expediente...</p>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: CÓMPUTOS Y LAPSOS -->
+        <div id="tab-computos" class="tab-content">
+            <h4 style="color:var(--primary); margin-top:0;">⚖️ Cómputos de Pena y Lapsos Procesales</h4>
+            <div id="contenido-computos">
+                <p style="color:#777;">Calculando cómputos, redenciones y beneficios...</p>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 3: MONITOREO -->
+                        <!-- PESTAÑA 3: MONITOREO Y SEGUIMIENTO (Solo Historial para todos) -->
+        <div id="tab-monitoreo" class="tab-content">
+            <h4 style="color:var(--primary); margin-top:0;">📊 Seguimiento y Control del Expediente</h4>
+            <p style="font-size:0.9em; color:#666; margin-bottom: 15px;">Registro de actas, actuaciones y notas de control del caso.</p>
+            
+            <!-- Contenedor Único del Historial -->
+            <div style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #c5cae9; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                <h5 style="margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 8px;">📋 Historial de Notas en la Base de Datos</h5>
+                <div id="contenedor-historial-notas" style="max-height: 450px; overflow-y: auto; margin-top: 10px; font-size: 0.9em;">
+                    <em style="color: #666;">Cargando historial de notas...</em>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- PESTAÑA 4: PANEL DE ADMINISTRADOR -->
+        <div id="tab-admin" class="tab-content">
+            <h4 style="color:#b71c1c; margin-top:0;">🛠️ Panel de Administración y Carga de Expedientes</h4>
+            <p style="font-size:0.9em; color:#666; margin-bottom: 20px;">Cree credenciales, asigne abogados y cargue la información detallada del cliente y sus causas.</p>
+            
+            <!-- NUEVO: SELECTOR PARA CARGAR CLIENTE EXISTENTE Y MODIFICAR -->
+            <div class="seccion-form" style="background: #e3f2fd; border-color: #90caf9;">
+                <h5 style="color: #0d47a1;">🔄 Cargar Cliente Existente para Modificar</h5>
+                <label style="font-size:0.85em; font-weight:bold;">Seleccione un cliente registrado para cargar sus datos en el formulario:</label>
+                <div style="display: flex; gap: 8px;">
+                    <select id="select-cargar-cliente" class="input-field" style="margin-bottom:0;">
+                        <option value="">-- Nuevo registro (Limpiar campos) --</option>
+                    </select>
+                    <button type="button" onclick="cargarClienteEnFormulario()" class="btn-secundario" style="margin-bottom:0; background: #1976d2;">📥 Cargar</button>
+                </div>
+            </div>
+<!-- Observaciones y Notas de Control y Seguimiento -->
+<label style="font-size:0.85em; font-weight:bold;">Observaciones y Notas de Control y Seguimiento:</label>
+<textarea id="adm-observaciones-control" class="input-field" placeholder="Ingrese una nueva nota de seguimiento..." style="height: 80px; resize: vertical;"></textarea>
+
+<!-- Botón dedicado para guardar la nota individualmente -->
+<button type="button" onclick="guardarNotaIndividual()" style="background-color: #007bff; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px; margin-bottom: 15px; font-weight: bold; width: 100%;">
+    💾 Guardar Nueva Nota de Seguimiento
+</button>
+
+<!-- Contenedor para visualizar las notas guardadas de este caso -->
+<div style="background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 15px;">
+    <span style="font-size: 0.85em; font-weight: bold; color: #333;">Historial de Notas en la Base de Datos:</span>
+    <div id="contenedor-historial-notas" style="max-height: 150px; overflow-y: auto; margin-top: 5px; font-size: 0.85em;">
+        <em style="color: #666;">Seleccione o cargue un cliente para ver sus notas...</em>
+    </div>
+</div>
+
+
+            <!-- BLOQUE 1: CREDENCIALES Y ACCESO -->
+            <div class="seccion-form">
+                <h5>1. Credenciales de Acceso</h5>
+                <label style="font-size:0.85em; font-weight:bold;">Usuario o Cédula de Acceso:</label>
+                <input type="text" id="adm-usuario" class="input-field" placeholder="Ej: V-12345678 o usuario">
+
+                <label style="font-size:0.85em; font-weight:bold;">Contraseña:</label>
+                <input type="password" id="adm-clave" class="input-field" placeholder="Contraseña de acceso">
+
+                <label style="font-size:0.85em; font-weight:bold;">Rol en el Sistema:</label>
+                <select id="adm-rol" class="input-field">
+                    <option value="cliente">Cliente</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+
+            <!-- BLOQUE 2: DATOS GENERALES DEL CASO Y CLIENTE -->
+            <div class="seccion-form">
+                <h5>2. Datos Generales y del Cliente</h5>
+                
+                <label style="font-size:0.85em; font-weight:bold;">Fecha de Recepción del Caso (Contratación):</label>
+                <input type="date" id="adm-fecha-recepcion" class="input-field">
+
+                <label style="font-size:0.85em; font-weight:bold;">Abogado Asignado:</label>
+                <select id="adm-abogado" class="input-field">
+                    <option value="Dr. Charles Reyes">Dr. Charles Reyes</option>
+                    <option value="Dra. Asociada Iuris">Dra. Asociada Iuris</option>
+                    <option value="Dr. Equipo Penal">Dr. Equipo Penal</option>
+                </select>
+
+                <label style="font-size:0.85em; font-weight:bold;">Nombre del Cliente / Privado de Libertad:</label>
+                <input type="text" id="adm-nombre-cliente" class="input-field" placeholder="Nombre completo">
+
+                <label style="font-size:0.85em; font-weight:bold;">Cédula de Identidad:</label>
+                <input type="text" id="adm-cedula-cliente" class="input-field" placeholder="Ej: V-12345678">
+
+                <label style="font-size:0.85em; font-weight:bold;">Dirección:</label>
+                <input type="text" id="adm-dir-cliente" class="input-field" placeholder="Dirección de residencia">
+
+                <label style="font-size:0.85em; font-weight:bold;">Teléfono:</label>
+                <input type="text" id="adm-tel-cliente" class="input-field" placeholder="Número telefónico">
+
+                <!-- NUEVO CAMPO EN PESTAÑA 1 -->
+                <label style="font-size:0.85em; font-weight:bold;">Centro de Reclusión Actual:</label>
+                <input type="text" id="adm-centro-reclusion" class="input-field" placeholder="Ej: CPO Politáchira, CEPRT, etc.">
+            </div>
+
+            <!-- BLOQUE 3: APOYO FAMILIAR -->
+            <div class="seccion-form">
+                <h5>3. Apoyo Familiar</h5>
+                <label style="font-size:0.85em; font-weight:bold;">Nombre del Familiar de Contacto:</label>
+                <input type="text" id="adm-fam-nombre" class="input-field" placeholder="Nombre completo del familiar">
+
+                <label style="font-size:0.85em; font-weight:bold;">Dirección del Familiar:</label>
+                <input type="text" id="adm-fam-dir" class="input-field" placeholder="Dirección">
+
+                <label style="font-size:0.85em; font-weight:bold;">Teléfono del Familiar:</label>
+                <input type="text" id="adm-fam-tel" class="input-field" placeholder="Teléfono de contacto">
+            </div>
+
+            <!-- BLOQUE 4: EXPEDIENTES JUDICIALES DINÁMICOS -->
+            <div class="seccion-form">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h5 style="margin:0; border:none;">4. Información Judicial y Expedientes</h5>
+                    <button type="button" onclick="agregarCampoExpediente()" class="btn-secundario">➕ Agregar Otro Expediente</button>
+                </div>
+                <p style="font-size:0.8em; color:#666; margin-top:0;">Puede registrar múltiples expedientes si el cliente posee varios casos abiertos.</p>
+                
+                <div id="contenedor-expedientes-dinamicos">
+                    <!-- Aquí se inyectan dinámicamente los expedientes -->
+                </div>
+            </div>
+
+            <button onclick="guardarExpedienteCompleto()" class="btn-admin-guardar" style="background: var(--accent); color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.05em;">💾 GUARDAR / ACTUALIZAR EXPEDIENTE EN BASE DE DATOS</button>
+            
+            <div style="margin-top: 30px;">
+                <h5 style="color:#333; margin-bottom: 10px;">📋 Cuentas Registradas en el Sistema</h5>
+                <div id="lista-cuentas-admin" style="max-height: 220px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 8px; background:white;"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // Configuración Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
+        authDomain: "privadosayuda-f01f1.firebaseapp.com",
+        databaseURL: "https://privadosayuda-f01f1-default-rtdb.firebaseio.com/",
+        projectId: "privadosayuda-f01f1",
+        storageBucket: "privadosayuda-f01f1.firebasestorage.app",
+        messagingSenderId: "137166482903",
+        appId: "1:137166482903:web:1221fa92f4ed9fa5902f92"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.database();
+
+    const ADMIN_TEMPORAL_USER = "admin";
+    const ADMIN_TEMPORAL_CLAVE = "185576";
+
+    window.onload = () => {
+        const sesionActiva = localStorage.getItem('portal_sesion_usuario');
+        if (sesionActiva) {
+            verificarYEntrarSesion(sesionActiva);
+        } else {
+            agregarCampoExpediente();
+        }
+    };
+
+    // Función auxiliar para generar HTML de fechas de detención múltiples
+    function renderizarBloqueFechasDetencion(fechasArr = []) {
+        let html = '<div class="fechas-detencion-container">';
+        if (!fechasArr || fechasArr.length === 0) {
+            fechasArr = [{ inicio: '', fin: '', cerrada: false }];
+        }
+        fechasArr.forEach((f, idx) => {
+            html += `
+                <div class="sub-seccion-dinamica fecha-det-item" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <div style="flex:1;">
+                        <label style="font-size:11px; font-weight:bold;">Fecha Inicial Detención ${idx + 1}:</label>
+                        <input type="date" class="input-field f-inicio" value="${f.inicio || ''}" ${idx > 0 ? 'readonly' : ''} style="margin-bottom:0;">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:11px; font-weight:bold;">Fecha Final Detención ${idx + 1}:</label>
+                        <input type="date" class="input-field f-fin" value="${f.fin || ''}" style="margin-bottom:0;">
+                    </div>
+                    ${idx === fechasArr.length - 1 ? `<button type="button" onclick="agregarOtraFechaDetencion(this)" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85em; height:38px; margin-top:18px;">➕ Agregar Otra Detención</button>` : ''}
+                </div>`;
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function agregarOtraFechaDetencion(btn) {
+        const container = btn.closest('.fechas-detencion-container');
+        const items = container.querySelectorAll('.fecha-det-item');
+        const ultimaFinInput = items[items.length - 1].querySelector('.f-fin');
+        
+        if (!ultimaFinInput.value) {
+            alert("Debe colocar la fecha final de la detención actual antes de aperturar otra detención.");
+            return;
+        }
+
+        const nuevaFechaInicio = ultimaFinInput.value;
+        const nuevoIndex = items.length + 1;
+
+        btn.style.display = 'none';
+
+        const nuevoHtml = `
+            <div class="sub-seccion-dinamica fecha-det-item" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <div style="flex:1;">
+                    <label style="font-size:11px; font-weight:bold;">Fecha Inicial Detención ${nuevoIndex}:</label>
+                    <input type="date" class="input-field f-inicio" value="${nuevaFechaInicio}" readonly style="margin-bottom:0;">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:11px; font-weight:bold;">Fecha Final Detención ${nuevoIndex} (si aplica):</label>
+                    <input type="date" class="input-field f-fin" value="" style="margin-bottom:0;">
+                </div>
+                <button type="button" onclick="agregarOtraFechaDetencion(this)" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85em; height:38px; margin-top:18px;">➕ Agregar Otra Detención</button>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', nuevoHtml);
+    }
+
+    // Renderizar bloque de redenciones múltiples
+    function renderizarBloqueRedenciones(redencionesArr = []) {
+        let html = '<div class="redenciones-container">';
+        if (!redencionesArr || redencionesArr.length === 0) {
+            redencionesArr = [{ anos: 0, meses: 0, dias: 0, fecha: '' }];
+        }
+        redencionesArr.forEach((r, idx) => {
+            html += `
+                <div class="sub-seccion-dinamica redencion-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <span style="font-size:12px; font-weight:bold; color:var(--primary);">Redención #${idx + 1}</span>
+                        ${idx > 0 ? `<button type="button" onclick="this.closest('.redencion-item').remove()" style="background:var(--secondary); color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️ Quitar</button>` : ''}
+                    </div>
+                    <div class="grid-3" style="margin-bottom:6px;">
+                        <div><label style="font-size:10px;">Años</label><input type="number" class="input-field r-ano" min="0" value="${r.anos || 0}" style="margin-bottom:0;"></div>
+                        <div><label style="font-size:10px;">Meses</label><input type="number" class="input-field r-mes" min="0" max="11" value="${r.meses || 0}" style="margin-bottom:0;"></div>
+                        <div><label style="font-size:10px;">Días</label><input type="number" class="input-field r-dia" min="0" max="30" value="${r.dias || 0}" style="margin-bottom:0;"></div>
+                    </div>
+                    <label style="font-size:11px; font-weight:bold;">Fecha en que fue decretada por el tribunal:</label>
+                    <input type="date" class="input-field r-fecha" value="${r.fecha || ''}" style="margin-bottom:0;">
+                </div>
+            `;
+        });
+        html += '</div>';
+        html += `<button type="button" onclick="agregarOtraRedencion(this)" class="btn-secundario" style="margin-top:5px; padding:6px 10px; font-size:0.8em;">➕ Agregar otra redención</button>`;
+        return html;
+    }
+
+    function agregarOtraRedencion(btn) {
+        const container = btn.previousElementSibling;
+        const index = container.querySelectorAll('.redencion-item').length + 1;
+        const html = `
+            <div class="sub-seccion-dinamica redencion-item">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <span style="font-size:12px; font-weight:bold; color:var(--primary);">Redención #${index}</span>
+                    <button type="button" onclick="this.closest('.redencion-item').remove()" style="background:var(--secondary); color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️ Quitar</button>
+                </div>
+                <div class="grid-3" style="margin-bottom:6px;">
+                    <div><label style="font-size:10px;">Años</label><input type="number" class="input-field r-ano" min="0" value="0" style="margin-bottom:0;"></div>
+                    <div><label style="font-size:10px;">Meses</label><input type="number" class="input-field r-mes" min="0" max="11" value="0" style="margin-bottom:0;"></div>
+                    <div><label style="font-size:10px;">Días</label><input type="number" class="input-field r-dia" min="0" max="30" value="0" style="margin-bottom:0;"></div>
+                </div>
+                <label style="font-size:11px; font-weight:bold;">Fecha en que fue decretada por el tribunal:</label>
+                <input type="date" class="input-field r-fecha" value="" style="margin-bottom:0;">
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    // Función para añadir bloques de expedientes dinámicamente en el Admin
+    function agregarCampoExpediente(datos = {}) {
+        const contenedor = document.getElementById('contenedor-expedientes-dinamicos');
+        const idUnico = 'exp_' + Date.now() + Math.random().toString(36).substring(2, 7);
+
+        const htmlFechas = renderizarBloqueFechasDetencion(datos.fechasDetencion);
+        const htmlRedenciones = renderizarBloqueRedenciones(datos.redenciones);
+
+        const html = `
+            <div class="expediente-card" id="${idUnico}">
+                <button type="button" class="btn-eliminar-exp" onclick="document.getElementById('${idUnico}').remove()">🗑️ Quitar Expediente</button>
+                <h6 style="margin:0 0 10px 0; color:var(--primary); font-size:1em;">Causa / Expediente Judicial</h6>
+                
+                <input type="text" class="input-field exp-num" placeholder="Número de Expediente Judicial" value="${datos.numExpediente || ''}">
+                <input type="text" class="input-field exp-mp" placeholder="Número de Expediente Ministerio Público" value="${datos.numFiscalia || ''}">
+                <input type="text" class="input-field exp-carcelario" placeholder="Número de Expediente Carcelario (si aplica)" value="${datos.numCarcelario || ''}">
+                
+                <div class="grid-2">
+                    <div><label style="font-size:0.8em; font-weight:bold; color:#444;">Fiscalía Nº:</label><input type="text" class="input-field exp-num-fis" placeholder="Ej: 21" value="${datos.numFis || ''}"></div>
+                    <div><label style="font-size:0.8em; font-weight:bold; color:#444;">Nombre del Fiscal:</label><input type="text" class="input-field exp-nombre-fiscal" placeholder="Ej: Dr. Juan Pérez" value="${datos.nombreFiscal || ''}"></div>
+                </div>
+
+                <input type="text" class="input-field exp-juez" placeholder="Nombre del Juez" value="${datos.juez || ''}">
+                <input type="text" class="input-field exp-tipo-tribunal" placeholder="Tribunal (Ej: 3ro de Control, 2do de Ejecución)" value="${datos.tipoTribunal || ''}">
+                <input type="text" class="input-field exp-circuito" placeholder="Circuito Judicial Penal (Ej: Circuito Judicial Penal Táchira)" value="${datos.circuito || ''}">
+                
+                <input type="text" class="input-field exp-delito" placeholder="Delito(s) Imputados" value="${datos.delito || ''}">
+                
+                <div style="background: #f1f8e9; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px dashed #c8e6c9;">
+                    <label style="font-size:0.8em; font-weight:bold; color:#2e7d32;">Si aplica (Drogas/Sustancias):</label>
+                    <input type="text" class="input-field exp-tipo-droga" placeholder="Tipo de sustancia" value="${datos.tipoDroga || ''}" style="margin-top:5px; margin-bottom:5px;">
+                    <input type="text" class="input-field exp-cant-droga" placeholder="Cantidad de droga" value="${datos.cantDroga || ''}" style="margin-bottom:0;">
+                </div>
+
+                <label style="font-size:0.8em; font-weight:bold; color:#444;">Fechas de Detención:</label>
+                ${htmlFechas}
+
+                <div class="grid-3" style="margin-top: 10px;">
+                    <div><label style="font-size: 11px; color: #666;">Audiencia Present./Flagrancia</label><input type="date" class="input-field exp-f-pres" value="${datos.fPresentacion || ''}"></div>
+                    <div><label style="font-size: 11px; color: #666;">Audiencia Preliminar</label><input type="date" class="input-field exp-f-prel" value="${datos.fPreliminar || ''}"></div>
+                    <div><label style="font-size: 11px; color: #666;">Audiencia Apertura Juicio</label><input type="date" class="input-field exp-f-juicio" value="${datos.fJuicio || ''}"></div>
+                </div>
+
+                <label style="font-size:0.8em; font-weight:bold; color:#444;">Condena Impuesta:</label>
+                <div class="grid-3" style="margin-bottom: 12px;">
+                    <div><label style="font-size: 11px; color: #666;">Años</label><input type="number" class="input-field exp-cano" placeholder="0" min="0" value="${datos.cAno || 0}"></div>
+                    <div><label style="font-size: 11px; color: #666;">Meses</label><input type="number" class="input-field exp-cmes" placeholder="0" min="0" max="11" value="${datos.cMes || 0}"></div>
+                    <div><label style="font-size: 11px; color: #666;">Días</label><input type="number" class="input-field exp-cdia" placeholder="0" min="0" max="30" value="${datos.cDia || 0}"></div>
+                </div>
+
+                <label style="font-size:0.8em; font-weight:bold; color:#444;">Fase Procesal Actual:</label>
+                <select class="input-field exp-fase">
+                    <option value="Preparatoria" ${datos.fase === 'Preparatoria' ? 'selected' : ''}>Preparatoria</option>
+                    <option value="Intermedia" ${datos.fase === 'Intermedia' ? 'selected' : ''}>Intermedia</option>
+                    <option value="Juicio" ${datos.fase === 'Juicio' ? 'selected' : ''}>Juicio</option>
+                    <option value="Ejecución" ${datos.fase === 'Ejecución' ? 'selected' : ''}>Ejecución</option>
+                </select>
+
+                <!-- SECCIÓN PANEL DE CONTROL / LIBERTAD Y BENEFICIOS -->
+                <div style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #ffe0b2;">
+                    <h6 style="margin:0 0 8px 0; color:#e65100;">⚙️ Panel de Control y Beneficios (Pestaña 2)</h6>
+                    
+                    <label style="font-size:0.8em; font-weight:bold; color:#444;">¿Cliente en libertad o medida cautelar?</label>
+                    <select class="input-field exp-en-libertad" onchange="toggleCamposLibertad(this)">
+                        <option value="no" ${datos.enLibertad === 'no' ? 'selected' : ''}>No (Privado de libertad)</option>
+                        <option value="si" ${datos.enLibertad === 'si' ? 'selected' : ''}>Sí (Goza de medida / libertad)</option>
+                    </select>
+
+                    <div class="bloque-libertad-opciones" style="display: ${datos.enLibertad === 'si' ? 'block' : 'none'};">
+                        <label style="font-size:0.8em; font-weight:bold; color:#444;">Fecha de Libertad / Otorgamiento de Medida:</label>
+                        <input type="date" class="input-field exp-fecha-libertad" value="${datos.fechaLibertad || ''}">
+
+                        <label style="font-size:0.8em; font-weight:bold; color:#444;">Tipo de Libertad / Medida:</label>
+                        <select class="input-field exp-tipo-libertad">
+                            <option value="Libertad plena" ${datos.tipoLibertad === 'Libertad plena' ? 'selected' : ''}>Libertad plena</option>
+                            <option value="Destacamento trabajo" ${datos.tipoLibertad === 'Destacamento trabajo' ? 'selected' : ''}>Destacamento trabajo</option>
+                            <option value="Régimen abierto" ${datos.tipoLibertad === 'Régimen abierto' ? 'selected' : ''}>Régimen abierto</option>
+                            <option value="Libertad condicional" ${datos.tipoLibertad === 'Libertad condicional' ? 'selected' : ''}>Libertad condicional</option>
+                            <option value="Confinamiento" ${datos.tipoLibertad === 'Confinamiento' ? 'selected' : ''}>Confinamiento</option>
+                            <option value="Régimen de confianza tutelado" ${datos.tipoLibertad === 'Régimen de confianza tutelado' ? 'selected' : ''}>Régimen de confianza tutelado</option>
+                            <option value="Medida cautelar" ${datos.tipoLibertad === 'Medida cautelar' ? 'selected' : ''}>Medida cautelar</option>
+                        </select>
+
+                        <label style="font-size:0.8em; font-weight:bold; color:#444;">Lugar donde debe realizar sus presentaciones:</label>
+                        <input type="text" class="input-field exp-lugar-presentaciones" placeholder="Ej: Tribunal X, Destacamento Y..." value="${datos.lugarPresentaciones || ''}">
+                    </div>
+
+                    <label style="font-size:0.8em; font-weight:bold; color:#444; margin-top:8px; display:block;">Beneficios aplicables al caso (seleccione los que apliquen):</label>
+                    <div style="display:flex; flex-direction:column; gap:5px; font-size:0.85em;">
+                        <label><input type="checkbox" class="exp-ben-destacamento" ${datos.benDestacamento ? 'checked' : ''}> Destacamento de trabajo (procede al cumplir 1/2 de la pena)</label>
+                        <label><input type="checkbox" class="exp-ben-abierto" ${datos.benAbierto ? 'checked' : ''}> Régimen abierto (procede al cumplir 2/3 de la pena)</label>
+                        <label><input type="checkbox" class="exp-ben-condicional" ${datos.benCondicional ? 'checked' : ''}> Libertad condicional y confinamiento (procede al cumplir 3/4 partes de la pena)</label>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN REDENCIONES -->
+                <div style="background: #e8eaf6; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #c5cae9;">
+                    <h6 style="margin:0 0 8px 0; color:var(--primary);">⏱️ Registro de Redenciones de Pena</h6>
+                    ${htmlRedenciones}
+                </div>
+
+            </div>
+        `;
+        contenedor.insertAdjacentHTML('beforeend', html);
+    }
+
+    function toggleCamposLibertad(select) {
+        const card = select.closest('.expediente-card');
+        const bloque = card.querySelector('.bloque-libertad-opciones');
+        bloque.style.display = select.value === 'si' ? 'block' : 'none';
+    }
+
+    function cargarClienteEnFormulario() {
+    const usuarioSel = document.getElementById('select-cargar-cliente').value;
+    const contenedorExpedientes = document.getElementById('contenedor-expedientes-dinamicos');
+    
+    if (!usuarioSel) {
+        // Limpiar formulario si se selecciona la opción de nuevo registro
+        document.getElementById('adm-usuario').value = "";
+        document.getElementById('adm-clave').value = "";
+        document.getElementById('adm-rol').value = "cliente";
+        document.getElementById('adm-fecha-recepcion').value = "";
+        document.getElementById('adm-abogado').value = "Dr. Charles Reyes";
+        document.getElementById('adm-nombre-cliente').value = "";
+        document.getElementById('adm-cedula-cliente').value = "";
+        document.getElementById('adm-dir-cliente').value = "";
+        document.getElementById('adm-tel-cliente').value = "";
+        document.getElementById('adm-centro-reclusion').value = "";
+        document.getElementById('adm-fam-nombre').value = "";
+        document.getElementById('adm-fam-dir').value = "";
+        document.getElementById('adm-fam-tel').value = "";
+        document.getElementById('adm-observaciones-control').value = "";
+        
+        contenedorExpedientes.innerHTML = "";
+        agregarCampoExpediente(); // Agregar un bloque vacío por defecto
+        
+        document.getElementById('contenedor-historial-notas').innerHTML = '<em style="color: #666;">Seleccione o cargue un cliente para ver sus notas...</em>';
+        return;
+    }
+
+    db.ref("portal_independiente/" + usuarioSel).once("value", snapshot => {
+        if (snapshot.exists()) {
+            const d = snapshot.val();
+            
+            // 1. Credenciales y accesos
+            document.getElementById('adm-usuario').value = d.usuario || usuarioSel;
+            document.getElementById('adm-clave').value = d.clave || "";
+            document.getElementById('adm-rol').value = d.rol || "cliente";
+            
+            // 2. Datos generales y del cliente
+            document.getElementById('adm-fecha-recepcion').value = d.fechaRecepcion || "";
+            document.getElementById('adm-abogado').value = d.abogadoAsignado || "Dr. Charles Reyes";
+            document.getElementById('adm-nombre-cliente').value = d.nombreCliente || "";
+            document.getElementById('adm-cedula-cliente').value = d.cedulaCliente || "";
+            document.getElementById('adm-dir-cliente').value = d.dirCliente || "";
+            document.getElementById('adm-tel-cliente').value = d.telCliente || "";
+            document.getElementById('adm-centro-reclusion').value = d.centroReclusion || "";
+            
+            // 3. Apoyo familiar
+            document.getElementById('adm-fam-nombre').value = d.famNombre || "";
+            document.getElementById('adm-fam-dir').value = d.famDir || "";
+            document.getElementById('adm-fam-tel').value = d.famTel || "";
+            
+            // 4. Expedientes dinámicos
+            contenedorExpedientes.innerHTML = ""; // Limpiar antes de rellenar
+            if (d.expedientes && Array.isArray(d.expedientes) && d.expedientes.length > 0) {
+                d.expedientes.forEach(exp => {
+                    agregarCampoExpediente(exp);
+                });
+            } else {
+                agregarCampoExpediente();
+            }
+
+            // 5. Cargar notas de historial (usando la cédula o el usuario como identificador del caso)
+            const idCasoBusqueda = d.cedulaCliente ? d.cedulaCliente.trim() : (d.nombreCliente ? d.nombreCliente.trim() : usuarioSel);
+            cargarHistorialNotas(idCasoBusqueda);
+
+            alert(`Datos del cliente "${usuarioSel}" cargados correctamente en el formulario.`);
+        } else {
+            alert("No se encontraron los datos del cliente seleccionado.");
+        }
+    });
+}
+
+    // Guarda o actualiza todos los campos estructurados en Firebase
+    function guardarExpedienteCompleto() {
+        const usuario = document.getElementById('adm-usuario').value.trim();
+        const clave = document.getElementById('adm-clave').value.trim();
+        const rol = document.getElementById('adm-rol').value;
+
+        if (!usuario || !clave) {
+            alert("Por favor, complete al menos el usuario y la contraseña.");
+            return;
+        }
+
+        const expedientes = [];
+        document.querySelectorAll('.expediente-card').forEach(card => {
+            const fechasDetencion = [];
+            card.querySelectorAll('.fecha-det-item').forEach(item => {
+                fechasDetencion.push({
+                    inicio: item.querySelector('.f-inicio').value,
+                    fin: item.querySelector('.f-fin').value
+                });
+            });
+
+            const redenciones = [];
+            card.querySelectorAll('.redencion-item').forEach(item => {
+                redenciones.push({
+                    anos: parseInt(item.querySelector('.r-ano').value) || 0,
+                    meses: parseInt(item.querySelector('.r-mes').value) || 0,
+                    dias: parseInt(item.querySelector('.r-dia').value) || 0,
+                    fecha: item.querySelector('.r-fecha').value
+                });
+            });
+
+            expedientes.push({
+                numExpediente: card.querySelector('.exp-num').value.trim(),
+                numFiscalia: card.querySelector('.exp-mp').value.trim(),
+                numCarcelario: card.querySelector('.exp-carcelario').value.trim(),
+                numFis: card.querySelector('.exp-num-fis').value.trim(),
+                nombreFiscal: card.querySelector('.exp-nombre-fiscal').value.trim(),
+                juez: card.querySelector('.exp-juez').value.trim(),
+                tipoTribunal: card.querySelector('.exp-tipo-tribunal').value.trim(),
+                circuito: card.querySelector('.exp-circuito').value.trim(),
+                delito: card.querySelector('.exp-delito').value.trim(),
+                tipoDroga: card.querySelector('.exp-tipo-droga').value.trim(),
+                cantDroga: card.querySelector('.exp-cant-droga').value.trim(),
+                fechasDetencion: fechasDetencion,
+                fPresentacion: card.querySelector('.exp-f-pres').value,
+                fPreliminar: card.querySelector('.exp-f-prel').value,
+                fJuicio: card.querySelector('.exp-f-juicio').value,
+                cAno: parseInt(card.querySelector('.exp-cano').value) || 0,
+                cMes: parseInt(card.querySelector('.exp-cmes').value) || 0,
+                cDia: parseInt(card.querySelector('.exp-cdia').value) || 0,
+                fase: card.querySelector('.exp-fase').value,
+                enLibertad: card.querySelector('.exp-en-libertad').value,
+                fechaLibertad: card.querySelector('.exp-fecha-libertad').value,
+                tipoLibertad: card.querySelector('.exp-tipo-libertad').value,
+                lugarPresentaciones: card.querySelector('.exp-lugar-presentaciones').value,
+                benDestacamento: card.querySelector('.exp-ben-destacamento').checked,
+                benAbierto: card.querySelector('.exp-ben-abierto').checked,
+                benCondicional: card.querySelector('.exp-ben-condicional').checked,
+                redenciones: redenciones
+            });
+        });
+
+        const payload = {
+            usuario: usuario,
+            clave: clave,
+            rol: rol,
+            fechaRecepcion: document.getElementById('adm-fecha-recepcion').value,
+            abogadoAsignado: document.getElementById('adm-abogado').value,
+            nombreCliente: document.getElementById('adm-nombre-cliente').value.trim(),
+            cedulaCliente: document.getElementById('adm-cedula-cliente').value.trim(),
+            dirCliente: document.getElementById('adm-dir-cliente').value.trim(),
+            telCliente: document.getElementById('adm-tel-cliente').value.trim(),
+            centroReclusion: document.getElementById('adm-centro-reclusion').value.trim(),
+            famNombre: document.getElementById('adm-fam-nombre').value.trim(),
+            famDir: document.getElementById('adm-fam-dir').value.trim(),
+            famTel: document.getElementById('adm-fam-tel').value.trim(),
+            expedientes: expedientes
+        };
+
+        db.ref("portal_independiente/" + usuario).set(payload).then(() => {
+            alert("¡Expediente guardado / actualizado y sincronizado exitosamente!");
+            cargarListaCuentasAdmin();
+        }).catch(error => {
+            alert("Error al guardar: " + error.message);
+        });
+    }
+
+    function intentarIngresoPortal() {
+        const usuarioInput = document.getElementById('login-usuario').value.trim();
+        const claveInput = document.getElementById('login-clave').value.trim();
+
+        if (!usuarioInput || !claveInput) {
+            alert("Por favor, ingrese usuario y contraseña.");
+            return;
+        }
+
+        if (usuarioInput === ADMIN_TEMPORAL_USER && claveInput === ADMIN_TEMPORAL_CLAVE) {
+            localStorage.setItem('portal_sesion_usuario', usuarioInput);
+            configurarAccesoUI(usuarioInput, { rol: 'admin' });
+            return;
+        }
+
+        db.ref("portal_independiente/" + usuarioInput).once("value", snapshot => {
+            if (snapshot.exists()) {
+                const datos = snapshot.val();
+                if (datos.clave === claveInput) {
+                    localStorage.setItem('portal_sesion_usuario', usuarioInput);
+                    configurarAccesoUI(usuarioInput, datos);
+                } else {
+                    alert("Contraseña incorrecta.");
+                }
+            } else {
+                alert("El usuario no se encuentra registrado.");
+            }
+        });
+    }
+
+    function verificarYEntrarSesion(usuario) {
+        if (usuario === ADMIN_TEMPORAL_USER) {
+            configurarAccesoUI(usuario, { rol: 'admin' });
+            return;
+        }
+
+        db.ref("portal_independiente/" + usuario).once("value", snapshot => {
+            if (snapshot.exists()) {
+                configurarAccesoUI(usuario, snapshot.val());
+            } else {
+                cerrarSesion();
+            }
+        });
+    }
+
+        function configurarAccesoUI(usuario, datos) {
+        document.getElementById('seccion-login').style.display = 'none';
+        document.getElementById('seccion-portal').style.display = 'block';
+
+        const esAdmin = (datos.rol === 'admin' || usuario === ADMIN_TEMPORAL_USER);
+
+        document.getElementById('titulo-usuario').innerText = esAdmin ? "Panel de Control Administrativo" : "Usuario: " + usuario;
+        document.getElementById('subtitulo-rol').innerText = esAdmin ? "Rol: Administrador" : "Rol: Cliente";
+
+        const btnTabAdmin = document.getElementById('btn-tab-admin');
+        if (esAdmin) {
+            btnTabAdmin.style.display = 'block';
+            cargarListaCuentasAdmin();
+        } else {
+            btnTabAdmin.style.display = 'none';
+        }
+
+        renderizarInformacionGeneral(usuario, datos, esAdmin);
+        renderizarComputosYPena(usuario, datos, esAdmin);
+        
+        // Carga automática del historial en la tercera pestaña basada en el usuario/cliente ingresado
+        let idCasoBusqueda = "";
+        if (datos.cedulaCliente) {
+            idCasoBusqueda = datos.cedulaCliente.trim();
+        } else if (datos.nombreCliente) {
+            idCasoBusqueda = datos.nombreCliente.trim();
+        } else {
+            idCasoBusqueda = usuario;
+        }
+        
+        // Llamada automática para pintar las notas en la tercera pestaña al entrar
+        cargarHistorialNotas(idCasoBusqueda);
+
+        if (esAdmin && document.querySelectorAll('.expediente-card').length === 0) {
+            agregarCampoExpediente();
+        }
+    }
+
+
+    function cargarListaCuentasAdmin() {
+        db.ref("portal_independiente").on("value", snapshot => {
+            const contenedor = document.getElementById('lista-cuentas-admin');
+            const selectCliente = document.getElementById('select-cargar-cliente');
+            
+            contenedor.innerHTML = "";
+            let opcionesSelectHtml = '<option value="">-- Nuevo registro (Limpiar campos) --</option>';
+
+            if (!snapshot.exists()) {
+                contenedor.innerHTML = "<p style='color:#666; font-size:0.9em;'>No hay cuentas registradas aún.</p>";
+                selectCliente.innerHTML = opcionesSelectHtml;
+                return;
+            }
+
+            snapshot.forEach(child => {
+                const c = child.val();
+                const id = child.key;
+                
+                // Excluir al admin temporal de los selectores de clientes si se desea, o mantenerlo
+                if (id !== ADMIN_TEMPORAL_USER) {
+                    opcionesSelectHtml += `<option value="${id}">${id} - ${c.nombreCliente || 'Sin nombre'}</option>`;
+                }
+
+                contenedor.innerHTML += `
+                    <div style="background:#f9f9f9; padding:8px; margin-bottom:6px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid #eee;">
+                        <div><b>Usuario:</b> ${id} - <small>${c.nombreCliente || 'Sin nombre'}</small><br><small style="color:var(--primary);">Rol: <b>${c.rol}</b></small></div>
+                        <div>
+                            <button onclick="cargarClienteDirecto('${id}')" style="background:var(--primary); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-right:4px;" title="Cargar para editar">✏️ Editar</button>
+                            <button onclick="eliminarCuenta('${id}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" title="Eliminar">🗑️</button>
+                        </div>
+                    </div>`;
+            });
+            selectCliente.innerHTML = opcionesSelectHtml;
+        });
+    }
+
+    // Función rápida para editar directamente desde la lista de cuentas
+    function cargarClienteDirecto(id) {
+        document.getElementById('select-cargar-cliente').value = id;
+        cargarClienteEnFormulario();
+        // Cambiar a la pestaña admin por si acaso
+        cambiarPestaña({ currentTarget: document.getElementById('btn-tab-admin') }, 'tab-admin');
+    }
+
+    function eliminarCuenta(id) {
+        if (confirm(`¿Está seguro de eliminar la cuenta ${id}?`)) {
+            db.ref("portal_independiente/" + id).remove().then(() => {
+                alert("Cuenta eliminada correctamente.");
+            });
+        }
+    }
+
+    // Funciones de cálculo temporal y de fechas
+    function calcularDiferenciaFechas(fechaInicioStr, fechaFinStr) {
+        if (!fechaInicioStr) return { anos: 0, meses: 0, dias: 0, diasTotales: 0 };
+        const inicio = new Date(fechaInicioStr);
+        const fin = fechaFinStr ? new Date(fechaFinStr) : new Date();
+
+        let diffTime = fin - inicio;
+        if (diffTime < 0) diffTime = 0;
+        const diasTotales = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        let anos = fin.getFullYear() - inicio.getFullYear();
+        let meses = fin.getMonth() - inicio.getMonth();
+        let dias = fin.getDate() - inicio.getDate();
+
+        if (dias < 0) {
+            meses--;
+            const mesAnterior = new Date(fin.getFullYear(), fin.getMonth(), 0);
+            dias += mesAnterior.getDate();
+        }
+        if (meses < 0) {
+            anos--;
+            meses += 12;
+        }
+        if (anos < 0) { anos = 0; meses = 0; dias = 0; }
+
+        return { anos, meses, dias, diasTotales };
+    }
+
+    function sumarDiasAFecha(fechaStr, diasASumar) {
+        if (!fechaStr) return 'No definida';
+        const d = new Date(fechaStr);
+        d.setDate(d.getDate() + diasASumar);
+        return d.toLocaleDateString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
+
+    function sumarAnosMesesDiasAFecha(fechaStr, a, m, d) {
+        if (!fechaStr) return 'No definida';
+        const fecha = new Date(fechaStr);
+        fecha.setFullYear(fecha.getFullYear() + a);
+        fecha.setMonth(fecha.getMonth() + m);
+        fecha.setDate(fecha.getDate() + d);
+        return fecha.toLocaleDateString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
+
+    function convertirDiasAñosMesesDias(totalDias) {
+        const anos = Math.floor(totalDias / 365);
+        const diasRestantes = totalDias % 365;
+        const meses = Math.floor(diasRestantes / 30);
+        const dias = diasRestantes % 30;
+        return `${anos} año(s), ${meses} mes(es), ${dias} día(s)`;
+    }
+
+    // Renderizar Pestaña 1: Información General
+    function renderizarInformacionGeneral(usuario, d, esAdmin) {
+        const contenedor = document.getElementById('contenido-info-general');
+        
+        if (esAdmin && usuario === ADMIN_TEMPORAL_USER) {
+            contenedor.innerHTML = `
+                <div class="info-bloque">
+                    <p>👋 <b>Bienvenido, Administrador.</b> Estás conectado con la cuenta maestra.</p>
+                    <p>Utiliza la <b>4ta pestaña (Panel Admin)</b> para registrar nuevos clientes, cargarlos y modificarlos en cualquier momento.</p>
+                </div>`;
+            return;
+        }
+
+        let htmlExpedientes = "";
+        if (d.expedientes && d.expedientes.length > 0) {
+            d.expedientes.forEach((exp, index) => {
+                const textoCondena = ((exp.cAno || 0) > 0 || (exp.cMes || 0) > 0 || (exp.cDia || 0) > 0)
+                    ? `${exp.cAno || 0} año(s), ${exp.cMes || 0} mes(es), ${exp.cDia || 0} día(s)`
+                    : 'Sin condena / Pendiente';
+
+                htmlExpedientes += `
+                    <div style="background:#f8f9fa; border:1px solid #d1c4e9; padding:12px; border-radius:6px; margin-top:10px;">
+                        <h6 style="margin:0 0 8px 0; color:var(--primary);">Causa / Expediente #${index + 1}</h6>
+                        <p><b>Nro. Expediente Judicial:</b> ${exp.numExpediente || 'No especificado'}</p>
+                        <p><b>Nro. Ministerio Público:</b> ${exp.numFiscalia || 'No especificado'}</p>
+                        <p><b>Nro. Carcelario:</b> ${exp.numCarcelario || 'No aplica'}</p>
+                        <p><b>Fiscalía Nº:</b> ${exp.numFis || 'No especificada'}</p>
+                        <p><b>Nombre del Fiscal:</b> ${exp.nombreFiscal || 'No especificado'}</p>
+                        <p><b>Tribunal:</b> ${exp.tipoTribunal || 'No especificado'}</p>
+                        <p><b>Circuito Judicial Penal:</b> ${exp.circuito || 'No especificado'}</p>
+                        <p><b>Juez:</b> ${exp.juez || 'No especificado'}</p>
+                        <p><b>Delito(s):</b> ${exp.delito || 'No especificado'}</p>
+                        ${exp.tipoDroga ? `<p><b>Sustancia / Droga:</b> ${exp.tipoDroga} - Cantidad: ${exp.cantDroga}</p>` : ''}
+                        <p><b>Condena:</b> ${textoCondena}</p>
+                        <p><b>Fase Procesal:</b> <span style="color:var(--secondary); font-weight:bold;">${exp.fase || 'Preparatoria'}</span></p>
+                    </div>
+                `;
+            });
+        } else {
+            htmlExpedientes = "<p style='color:#666;'>No hay expedientes registrados para este caso.</p>";
+        }
+
+        contenedor.innerHTML = `
+            <div class="info-bloque">
+                <h5 style="margin:0 0 8px 0; color:var(--primary);">👤 Datos Generales y del Cliente</h5>
+                <p><b>Nombre del Cliente:</b> ${d.nombreCliente || 'No especificado'}</p>
+                <p><b>Cédula de Identidad:</b> ${d.cedulaCliente || 'No especificada'}</p>
+                <p><b>Dirección:</b> ${d.dirCliente || 'No especificada'}</p>
+                <p><b>Teléfono:</b> ${d.telCliente || 'No especificado'}</p>
+                <p><b>Centro de Reclusión Actual:</b> <span style="color:var(--secondary); font-weight:bold;">${d.centroReclusion || 'No especificado'}</span></p>
+                <p><b>Abogado Asignado:</b> ${d.abogadoAsignado || 'No especificado'}</p>
+                <p><b>Fecha de Recepción del Caso:</b> ${d.fechaRecepcion || 'No especificada'}</p>
+            </div>
+
+            <div class="info-bloque">
+                <h5 style="margin:0 0 8px 0; color:var(--primary);">🤝 Apoyo Familiar</h5>
+                <p><b>Familiar de Contacto:</b> ${d.famNombre || 'No especificado'}</p>
+                <p><b>Dirección del Familiar:</b> ${d.famDir || 'No especificada'}</p>
+                <p><b>Teléfono del Familiar:</b> ${d.famTel || 'No especificado'}</p>
+            </div>
+
+            <div class="info-bloque">
+                <h5 style="margin:0 0 8px 0; color:var(--primary);">🏛️ Causas y Expedientes Judiciales (${d.expedientes ? d.expedientes.length : 0})</h5>
+                ${htmlExpedientes}
+            </div>
+        `;
+    }
+
+    // Renderizar Pestaña 2: Cómputos y Lapsos
+    function renderizarComputosYPena(usuario, d, esAdmin) {
+        const contenedor = document.getElementById('contenido-computos');
+
+        if (esAdmin && usuario === ADMIN_TEMPORAL_USER) {
+            contenedor.innerHTML = `<p style="color:#666;">Seleccione o ingrese a un cliente específico para visualizar sus cómputos y lapsos.</p>`;
+            return;
+        }
+
+        if (!d.expedientes || d.expedientes.length === 0) {
+            contenedor.innerHTML = `<p style="color:#666;">No hay expedientes registrados para este cliente.</p>`;
+            return;
+        }
+
+        let html = "";
+        d.expedientes.forEach((exp, idx) => {
+            let diasTotalesPrivacion = 0;
+            let desgloseDetencionesHTML = "";
+            if (exp.fechasDetencion && exp.fechasDetencion.length > 0) {
+                exp.fechasDetencion.forEach((tramo, tIdx) => {
+                    const resTramo = calcularDiferenciaFechas(tramo.inicio, tramo.fin);
+                    diasTotalesPrivacion += resTramo.diasTotales;
+                    desgloseDetencionesHTML += `<p style="margin:2px 0; font-size:0.85em;">• Tramo ${tIdx + 1}: ${tramo.inicio || 'N/D'} al ${tramo.fin || 'Presente'} (${resTramo.anos}a, ${resTramo.meses}m, ${resTramo.dias}d)</p>`;
+                });
+            }
+            const tiempoPrivacionFisicaFormateado = convertirDiasAñosMesesDias(diasTotalesPrivacion);
+
+            let tiempoJuicioFormateado = "No aplica / No registrada";
+            if (exp.fJuicio) {
+                const resJuicio = calcularDiferenciaFechas(exp.fJuicio, null);
+                tiempoJuicioFormateado = `${resJuicio.anos} año(s), ${resJuicio.meses} mes(es), ${resJuicio.dias} día(s)`;
+            }
+
+            let infoActoConclusivo = "";
+            if (['Preparatoria', 'Intermedia', 'Juicio'].includes(exp.fase) && exp.fPresentacion) {
+                const fecha45 = sumarDiasAFecha(exp.fPresentacion, 45);
+                infoActoConclusivo = `<p><b>Fecha límite 45 días (Acto Conclusivo):</b> <span style="color:var(--secondary); font-weight:bold;">${fecha45}</span> (Calculado desde audiencia de presentación: ${exp.fPresentacion})</p>`;
+            }
+
+            let infoEjecucionHTML = "";
+            let totalRedencionDias = 0;
+            let listadoRedencionesHTML = "";
+
+            if (exp.redenciones && exp.redenciones.length > 0) {
+                exp.redenciones.forEach((r, rIdx) => {
+                    const rDias = (r.anos || 0) * 365 + (r.meses || 0) * 30 + (r.dias || 0);
+                    totalRedencionDias += rDias;
+                    listadoRedencionesHTML += `<p style="margin:2px 0; font-size:0.85em;">• Redención #${rIdx + 1}: ${r.anos || 0}a, ${r.meses || 0}m, ${r.dias || 0}d (Decretada el: ${r.fecha || 'N/D'})</p>`;
+                });
+            }
+            const totalRedencionFormateado = convertirDiasAñosMesesDias(totalRedencionDias);
+            const totalFisicoMasRedencionDias = diasTotalesPrivacion + totalRedencionDias;
+            const totalFisicoMasRedencionFormateado = convertirDiasAñosMesesDias(totalFisicoMasRedencionDias);
+
+            let infoLibertadComputo = "";
+            if (exp.enLibertad === 'si') {
+                const resLibertad = calcularDiferenciaFechas(exp.fechaLibertad, null);
+                infoLibertadComputo = `
+                    <div style="background:#e8f5e9; padding:10px; border-radius:6px; margin-top:8px; border:1px solid #c8e6c9;">
+                        <p style="margin:0 0 5px 0; color:var(--accent); font-weight:bold;">📋 Control de Presentaciones en Libertad / Medida</p>
+                        <p><b>Tipo de Medida:</b> ${exp.tipoLibertad || 'N/D'}</p>
+                        <p><b>Lugar de Presentaciones:</b> ${exp.lugarPresentaciones || 'No especificado'}</p>
+                        <p><b>Tiempo en presentaciones (Tiempo efectivo computable):</b> ${resLibertad.anos} año(s), ${resLibertad.meses} mes(es), ${resLibertad.dias} día(s) (${resLibertad.diasTotales} días)</p>
+                    </div>`;
+            }
+
+            const condenaTotalDias = (exp.cAno || 0) * 365 + (exp.cMes || 0) * 30 + (exp.cDia || 0);
+            let beneficiosHTML = "";
+
+            if (condenaTotalDias > 0) {
+                const fechaInicioDetencionPrincipal = (exp.fechasDetencion && exp.fechasDetencion.length > 0) ? exp.fechasDetencion[0].inicio : null;
+
+                const fechaDefinitivaFisica = sumarAnosMesesDiasAFecha(fechaInicioDetencionPrincipal, exp.cAno || 0, exp.cMes || 0, exp.cDia || 0);
+                
+                const diasRestantesCondenaConRedencion = condenaTotalDias - totalRedencionDias;
+                const anosR = Math.floor(diasRestantesCondenaConRedencion / 365);
+                const mesesR = Math.floor((diasRestantesCondenaConRedencion % 365) / 30);
+                const diasR = (diasRestantesCondenaConRedencion % 365) % 30;
+                const fechaDefinitivaConRedencion = sumarAnosMesesDiasAFecha(fechaInicioDetencionPrincipal, anosR, mesesR, diasR);
+
+                infoEjecucionHTML += `
+                    <div style="margin-top:10px; padding:10px; background:#fff; border-radius:6px; border:1px solid #ddd;">
+                        <p><b>Listado de Redenciones:</b></p>
+                        ${listadoRedencionesHTML || '<p style="font-size:0.85em; color:#666;">Sin redenciones registradas.</p>'}
+                        <p style="margin-top:5px;"><b>Total Acumulado de Redenciones:</b> ${totalRedencionFormateado}</p>
+                        <p><b>Tiempo Cumplido (Físico + Redenciones):</b> ${totalFisicoMasRedencionFormateado}</p>
+                        <hr style="border:0; border-top:1px solid #eee; margin:8px 0;">
+                        <p><b>Cumplimiento Definitivo de la Pena (Solo Físico):</b> ${fechaDefinitivaFisica}</p>
+                        <p><b>Cumplimiento Definitivo de la Pena (Físico + Redenciones):</b> ${fechaDefinitivaConRedencion}</p>
+                    </div>
+                `;
+
+                let mitadPenaDias = Math.floor(condenaTotalDias / 2);
+                let dosTerciosDias = Math.floor(condenaTotalDias * 2 / 3);
+                let tresCuartosDias = Math.floor(condenaTotalDias * 3 / 4);
+
+                beneficiosHTML += `<div style="margin-top:10px; padding:10px; background:#f9fbe7; border-radius:6px; border:1px solid #dce775;">
+                    <p style="font-weight:bold; color:#827717; margin-top:0;">⚖️ Análisis y Fechas de Beneficios Procesales</p>`;
+
+                if (exp.benDestacamento) {
+                    const fechaDestacamento = sumarDiasAFecha(fechaInicioDetencionPrincipal, mitadPenaDias);
+                    const faltaDiasFisico = Math.max(0, mitadPenaDias - diasTotalesPrivacion);
+                    const faltaDiasRed = Math.max(0, mitadPenaDias - totalFisicoMasRedencionDias);
+                    beneficiosHTML += `
+                        <p><b>Destacamento de Trabajo (1/2 de la pena):</b> Se cumple el <b>${fechaDestacamento}</b><br>
+                        <small>• Falta (solo físico): ${convertirDiasAñosMesesDias(faltaDiasFisico)} | • Falta (físico + redenciones): ${convertirDiasAñosMesesDias(faltaDiasRed)}</small></p>`;
+                }
+
+                if (exp.benAbierto) {
+                    const fechaAbierto = sumarDiasAFecha(fechaInicioDetencionPrincipal, dosTerciosDias);
+                    const faltaDiasFisico = Math.max(0, dosTerciosDias - diasTotalesPrivacion);
+                    const faltaDiasRed = Math.max(0, dosTerciosDias - totalFisicoMasRedencionDias);
+                    beneficiosHTML += `
+                        <p><b>Régimen Abierto (2/3 de la pena):</b> Se cumple el <b>${fechaAbierto}</b><br>
+                        <small>• Falta (solo físico): ${convertirDiasAñosMesesDias(faltaDiasFisico)} | • Falta (físico + redenciones): ${convertirDiasAñosMesesDias(faltaDiasRed)}</small></p>`;
+                }
+
+                if (exp.benCondicional) {
+                    const fechaCondicional = sumarDiasAFecha(fechaInicioDetencionPrincipal, tresCuartosDias);
+                    const faltaDiasFisico = Math.max(0, tresCuartosDias - diasTotalesPrivacion);
+                    const faltaDiasRed = Math.max(0, tresCuartosDias - totalFisicoMasRedencionDias);
+                    beneficiosHTML += `
+                        <p><b>Libertad Condicional / Confinamiento (3/4 de la pena):</b> Se cumple el <b>${fechaCondicional}</b><br>
+                        <small>• Falta (solo físico): ${convertirDiasAñosMesesDias(faltaDiasFisico)} | • Falta (físico + redenciones): ${convertirDiasAñosMesesDias(faltaDiasRed)}</small></p>`;
+                }
+
+                beneficiosHTML += `</div>`;
+            }
+
+            html += `
+                <div class="info-bloque" style="border-left-color: var(--secondary);">
+                    <h5 style="margin:0 0 8px 0; color:var(--primary);">Causa / Expediente #${idx + 1} - (${exp.numExpediente || 'Sin Nro'})</h5>
+                    <p><b>Fase Procesal:</b> <span style="color:var(--secondary); font-weight:bold;">${exp.fase || 'Preparatoria'}</span></p>
+                    <p><b>Fechas y Tramos de Detención:</b></p>
+                    ${desgloseDetencionesHTML}
+                    <p style="margin-top:6px;"><b>Tiempo total privado de libertad (Físico):</b> ${tiempoPrivacionFisicaFormateado} (${diasTotalesPrivacion} días)</p>
+                    <p><b>Tiempo transcurrido desde Audiencia de Apertura a Juicio:</b> ${tiempoJuicioFormateado}</p>
+                    ${infoActoConclusivo}
+                    ${infoLibertadComputo}
+                    ${infoEjecucionHTML}
+                    ${beneficiosHTML}
+                </div>
+            `;
+        });
+
+        contenedor.innerHTML = html;
+    }
+
+    function cambiarPestaña(evt, tabId) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
+
+    function cerrarSesion() {
+        localStorage.removeItem('portal_sesion_usuario');
+        location.reload();
+    }
+  // Función para guardar una nueva nota de forma independiente
+function guardarNotaIndividual() {
+    let idCaso = document.getElementById('adm-cedula-cliente').value.trim();
+    if (!idCaso) {
+        idCaso = document.getElementById('adm-nombre-cliente').value.trim();
+    }
+
+    if (!idCaso) {
+        alert("Por favor, ingrese o cargue la cédula o el nombre del cliente primero.");
+        return;
+    }
+
+    const textoNota = document.getElementById('adm-observaciones-control').value.trim();
+    if (!textoNota) {
+        alert("El campo de notas está vacío. Escriba un reporte antes de guardar.");
+        return;
+    }
+
+    const notasRef = db.ref('seguimiento_casos/' + idCaso + '/notas_historial');
+
+    const nuevaNota = {
+        texto: textoNota,
+        fecha: new Date().toLocaleString(),
+        abogado: document.getElementById('adm-abogado') ? document.getElementById('adm-abogado').value : "Dr. Charles Reyes"
+    };
+
+    notasRef.push(nuevaNota)
+    .then(() => {
+        alert("¡Nota de seguimiento guardada con éxito!");
+        document.getElementById('adm-observaciones-control').value = ""; 
+        cargarHistorialNotas(idCaso); 
+    })
+    .catch((error) => {
+        console.error("Error al guardar la nota: ", error);
+        alert("Hubo un error al guardar la nota en la base de datos.");
+    });
+}
+
+// Función actualizada para mostrar el historial de notas aplicando el formato de texto y enlaces
+function cargarHistorialNotas(idCaso) {
+    const contenedor = document.getElementById('contenedor-historial-notas');
+    if (!idCaso) {
+        contenedor.innerHTML = '<em style="color: #666;">Seleccione o cargue un cliente para ver sus notas...</em>';
+        return;
+    }
+
+    const notasRef = db.ref('seguimiento_casos/' + idCaso + '/notas_historial');
+    
+    notasRef.once('value', (snapshot) => {
+        contenedor.innerHTML = "";
+        if (snapshot.exists()) {
+            const notas = snapshot.val();
+            let html = "";
+            
+            Object.keys(notas).forEach((key) => {
+                const item = notas[key];
+                // Aplicamos la función para procesar negritas, saltos de línea y enlaces de Google Drive
+                const textoFormateado = formatearTextoNota(item.texto);
+                
+                html += `
+                    <div style="background: white; padding: 6px 8px; margin-bottom: 5px; border-left: 3px solid #007bff; border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                        <div style="font-size: 0.75em; color: #555; margin-bottom: 2px;">
+                            <b>📅 ${item.fecha}</b> | 👤 <i>${item.abogado || 'Abogado'}</i>
+                        </div>
+                        <div>${textoFormateado}</div>
+                    </div>`;
+            });
+            contenedor.innerHTML = html;
+        } else {
+            contenedor.innerHTML = '<em style="color: #666;">No hay notas registradas para este caso todavía.</em>';
+        }
+    });
+}
+// Función de apoyo para procesar formato, párrafos, negrillas, emojis y enlaces
+function formatearTextoNota(texto) {
+    if (!texto) return '';
+    
+    // 1. Escapar caracteres especiales de HTML por seguridad básica
+    let textoEscapado = texto
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    
+    // 2. Convertir saltos de línea (\n) en <br> para respetar la separación de párrafos
+    let textoConParrafos = textoEscapado.replace(/\n/g, '<br>');
+    
+    // 3. Convertir formato de negrilla tipo Markdown (**texto**) a etiquetas <b>
+    let textoConNegrilla = textoConParrafos.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    
+    // 4. Detectar URLs y transformarlas en enlaces clickeables de Google Drive (los emojis funcionan de forma nativa)
+    const expRegular = /(https?:\/\/[^\s]+)/g;
+    let textoFinal = textoConNegrilla.replace(expRegular, function(url) {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: underline;">Ver documento en PDF 📄</a>`;
+    });
+    
+    return textoFinal;
+}
+
+</script>
+
+</body>
+</html>
