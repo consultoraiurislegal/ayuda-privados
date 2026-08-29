@@ -662,7 +662,7 @@
         });
     }
 
-    function intentarIngresoPortal() {
+        function intentarIngresoPortal() {
         const usuarioInput = document.getElementById('login-usuario').value.trim();
         const claveInput = document.getElementById('login-clave').value.trim();
 
@@ -672,6 +672,7 @@
         }
 
         if (usuarioInput === ADMIN_TEMPORAL_USER && claveInput === ADMIN_TEMPORAL_CLAVE) {
+            notificarLoginTelegram(usuarioInput + " (Administrador)"); // <-- Notificación Telegram Admin
             localStorage.setItem('portal_sesion_usuario', usuarioInput);
             configurarAccesoUI(usuarioInput, { rol: 'admin' });
             return;
@@ -681,6 +682,7 @@
             if (snapshot.exists()) {
                 const datos = snapshot.val();
                 if (datos.clave === claveInput) {
+                    notificarLoginTelegram(usuarioInput); // <-- Notificación Telegram Cliente
                     localStorage.setItem('portal_sesion_usuario', usuarioInput);
                     configurarAccesoUI(usuarioInput, datos);
                 } else {
@@ -691,6 +693,7 @@
             }
         });
     }
+
 
     function verificarYEntrarSesion(usuario) {
         if (usuario === ADMIN_TEMPORAL_USER) {
@@ -1174,6 +1177,15 @@ function formatearTextoNota(texto) {
     
     return textoFinal;
 }
+
+function notificarLoginTelegram(usuario) {
+    const TELEGRAM_TOKEN = "8017218933:AAEyBytMfs9MQ4avkjquRR1gOuKp-K4RDk8";
+    const TELEGRAM_CHAT_ID = "8377293331"; 
+    const texto = `👤 Un usuario acaba de iniciar sesión en el portal de clientes: ${usuario}`;
+    
+    fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(texto)}&parse_mode=Markdown`);
+}
+
 
 </script>
 
