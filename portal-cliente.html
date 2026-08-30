@@ -619,11 +619,16 @@ function agregarOtraFechaDetencion(btn) {
                 agregarCampoExpediente();
             }
 
-            // 5. Cargar notas de historial (usando la cédula o el usuario como identificador del caso)
+            // 5. CARGAR AUTOMÁTICAMENTE LAS PESTAÑAS 1, 2 Y 3 (HISTORIAL)
+            // Esto asegura que la información general y los cómputos se pinten con la data del cliente seleccionado
+            renderizarInformacionGeneral(usuarioSel, d, true);
+            renderizarComputosYPena(usuarioSel, d, true);
+
+            // Identificador para las notas de seguimiento
             const idCasoBusqueda = d.cedulaCliente ? d.cedulaCliente.trim() : (d.nombreCliente ? d.nombreCliente.trim() : usuarioSel);
             cargarHistorialNotas(idCasoBusqueda);
 
-            alert(`Datos del cliente "${usuarioSel}" cargados correctamente en el formulario.`);
+            alert(`Datos del cliente "${usuarioSel}" cargados correctamente en el formulario y sincronizados con las pestañas del portal.`);
         } else {
             alert("No se encontraron los datos del cliente seleccionado.");
         }
