@@ -351,60 +351,29 @@
         }
     };
 
-    // Función auxiliar para generar HTML de fechas de detención múltiples
     function renderizarBloqueFechasDetencion(fechasArr = []) {
-        let html = '<div class="fechas-detencion-container">';
-        if (!fechasArr || fechasArr.length === 0) {
-            fechasArr = [{ inicio: '', fin: '', cerrada: false }];
-        }
-        fechasArr.forEach((f, idx) => {
-            html += `
-                <div class="sub-seccion-dinamica fecha-det-item" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                    <div style="flex:1;">
-                        <label style="font-size:11px; font-weight:bold;">Fecha Inicial Detención ${idx + 1}:</label>
-                        <input type="date" class="input-field f-inicio" value="${f.inicio || ''}" ${idx > 0 ? 'readonly' : ''} style="margin-bottom:0;">
-                    </div>
-                    <div style="flex:1;">
-                        <label style="font-size:11px; font-weight:bold;">Fecha Final Detención ${idx + 1}:</label>
-                        <input type="date" class="input-field f-fin" value="${f.fin || ''}" style="margin-bottom:0;">
-                    </div>
-                    ${idx === fechasArr.length - 1 ? `<button type="button" onclick="agregarOtraFechaDetencion(this)" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85em; height:38px; margin-top:18px;">➕ Agregar Otra Detención</button>` : ''}
-                </div>`;
-        });
-        html += '</div>';
-        return html;
+    let html = '<div class="fechas-detencion-container">';
+    if (!fechasArr || fechasArr.length === 0) {
+        fechasArr = [{ inicio: '', fin: '', cerrada: false }];
     }
-
-    function agregarOtraFechaDetencion(btn) {
-        const container = btn.closest('.fechas-detencion-container');
-        const items = container.querySelectorAll('.fecha-det-item');
-        const ultimaFinInput = items[items.length - 1].querySelector('.f-fin');
-        
-        if (!ultimaFinInput.value) {
-            alert("Debe colocar la fecha final de la detención actual antes de aperturar otra detención.");
-            return;
-        }
-
-        const nuevaFechaInicio = ultimaFinInput.value;
-        const nuevoIndex = items.length + 1;
-
-        btn.style.display = 'none';
-
-        const nuevoHtml = `
+    fechasArr.forEach((f, idx) => {
+        html += `
             <div class="sub-seccion-dinamica fecha-det-item" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                 <div style="flex:1;">
-                    <label style="font-size:11px; font-weight:bold;">Fecha Inicial Detención ${nuevoIndex}:</label>
-                    <input type="date" class="input-field f-inicio" value="${nuevaFechaInicio}" readonly style="margin-bottom:0;">
+                    <label style="font-size:11px; font-weight:bold;">Fecha Inicial Detención ${idx + 1}:</label>
+                    <input type="date" class="input-field f-inicio" value="${f.inicio || ''}" style="margin-bottom:0;">
                 </div>
                 <div style="flex:1;">
-                    <label style="font-size:11px; font-weight:bold;">Fecha Final Detención ${nuevoIndex} (si aplica):</label>
-                    <input type="date" class="input-field f-fin" value="" style="margin-bottom:0;">
+                    <label style="font-size:11px; font-weight:bold;">Fecha Final Detención ${idx + 1}:</label>
+                    <input type="date" class="input-field f-fin" value="${f.fin || ''}" style="margin-bottom:0;">
                 </div>
-                <button type="button" onclick="agregarOtraFechaDetencion(this)" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85em; height:38px; margin-top:18px;">➕ Agregar Otra Detención</button>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', nuevoHtml);
-    }
+                ${idx === fechasArr.length - 1 ? `<button type="button" onclick="agregarOtraFechaDetencion(this)" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85em; height:38px; margin-top:18px;">➕ Agregar Otra Detención</button>` : ''}
+            </div>`;
+    });
+    html += '</div>';
+    return html;
+}
+
 
     // Renderizar bloque de redenciones múltiples
     function renderizarBloqueRedenciones(redencionesArr = []) {
@@ -454,6 +423,28 @@
         `;
         container.insertAdjacentHTML('beforeend', html);
     }
+function agregarOtraFechaDetencion(btn) {
+    const container = btn.closest('.fechas-detencion-container');
+    const index = container.querySelectorAll('.fecha-det-item').length + 1;
+    
+    // Ocultar o remover el botón actual para que solo aparezca en el último elemento
+    btn.remove();
+
+    const html = `
+        <div class="sub-seccion-dinamica fecha-det-item" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+            <div style="flex:1;">
+                <label style="font-size:11px; font-weight:bold;">Fecha Inicial Detención ${index}:</label>
+                <input type="date" class="input-field f-inicio" value="" style="margin-bottom:0;">
+            </div>
+            <div style="flex:1;">
+                <label style="font-size:11px; font-weight:bold;">Fecha Final Detención ${index}:</label>
+                <input type="date" class="input-field f-fin" value="" style="margin-bottom:0;">
+            </div>
+            <button type="button" onclick="agregarOtraFechaDetencion(this)" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85em; height:38px; margin-top:18px;">➕ Agregar Otra Detención</button>
+        </div>`;
+    
+    container.insertAdjacentHTML('beforeend', html);
+}
 
     // Función para añadir bloques de expedientes dinámicamente en el Admin
     function agregarCampoExpediente(datos = {}) {
