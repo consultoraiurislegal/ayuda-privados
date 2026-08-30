@@ -196,7 +196,7 @@
             
             <!-- Contenedor Único del Historial -->
             <div style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #c5cae9; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-                <h5 style="margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 8px;">📋 Historial de Notas en la Base de Datos</h5>
+                <h5 style="margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 8px;">📋 Aqui puedes ver todos los reportes de avance y gestion de su expediente penal, tambien puede descargar todos los documentos en formato pdf relacionados con su caso</h5>
                 <div id="contenedor-historial-notas" style="max-height: 450px; overflow-y: auto; margin-top: 10px; font-size: 0.9em;">
                     <em style="color: #666;">Cargando historial de notas...</em>
                 </div>
@@ -232,7 +232,7 @@
 
 <!-- Contenedor para visualizar las notas guardadas de este caso -->
 <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 15px;">
-    <span style="font-size: 0.85em; font-weight: bold; color: #333;">Historial de Notas en la Base de Datos:</span>
+    <span style="font-size: 0.85em; font-weight: bold; color: #333;">Aqui puedes ver todos los reportes de avance y gestion de su ezpediente penal, tambien puede descargar todos los documentos en formato pdf relacionados con su caso:</span>
     <div id="contenedor-historial-notas" style="max-height: 150px; overflow-y: auto; margin-top: 5px; font-size: 0.85em;">
         <em style="color: #666;">Seleccione o cargue un cliente para ver sus notas...</em>
     </div>
@@ -746,7 +746,7 @@ function agregarOtraFechaDetencion(btn) {
                     localStorage.setItem('portal_sesion_usuario', usuarioInput);
                     configurarAccesoUI(usuarioInput, datos);
                 } else {
-                    alert("Contraseña incorrecta.");
+                    alert("Contraseña incorrecta o la suscripcion ha vencido y debe realizar el pago, coloquese en contacto al 0424 7640846.");
                 }
             } else {
                 alert("El usuario no se encuentra registrado.");
