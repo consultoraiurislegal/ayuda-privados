@@ -911,15 +911,23 @@ function agregarAlExpediente() {
     }
 }
 
-function guardarEnFirebase(cedula, contenido, tipo) {
-    db.ref("seguimiento_casos/" + cedula + "/actualizaciones").push({
-        fecha: new Date().toLocaleDateString(),
-        nota: contenido,
-        tipo: tipo
-    }).then(() => {
-        alert("Actualizado correctamente");
-        document.getElementById('nueva-nota-admin').value = "";
+function guardarEnFirebase(nombrePagina, identidad, ubicacion) {
+    firebase.database().ref("analytics_visitas").push({
+        pagina: nombrePagina,
+        usuario: identidad,
+        ubicacion: ubicacion,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        fecha: new Date().toLocaleString(),
+        dispositivo: navigator.userAgent
     });
+
+    // Alerta a Telegram (exclusiva para anónimos o clientes)
+    const TELEGRAM_TOKEN = "8017218933:AAEyBytMfs9MQ4avkjquRR1gOuKp-K4RDk8";
+    const TELEGRAM_CHAT_ID = "8377293331"; 
+    const texto = `👀 *NUEVA VISITA DETECTADA*\n📄 Sección: ${nombrePagina}\n👤 Usuario: ${identidad}\n📍 Ubicación: ${ubicacion}`;
+    
+    fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(texto)}&parse_mode=Markdown`)
+        .catch(err => console.log("Error enviando alerta de Telegram"));
 }
 
 function eliminarEntradaExpediente(cedula, id) {
@@ -967,22 +975,26 @@ function formatearNota(texto) {
 
 // Función para registrar automáticamente cada vista de página
 function registrarVista(nombrePagina) {
-    // Identificar si hay un cliente o admin logueado, o marcar como Anónimo
     let identidad = "Anónimo";
+    let esAdministrador = false;
+
+    // Validación para excluir administradores
     if (typeof esAdmin !== 'undefined' && esAdmin) {
-        identidad = "Admin: " + nombreAdmin;
+        return; // Si es admin, no registra nada ni altera la estadística
     } else if (localStorage.getItem('id_consulta_activa')) {
-        identidad = "Consulta: " + localStorage.getItem('id_consulta_activa');
+        identidad = "Consulta en curso";
     }
 
-    // Guardar en Firebase bajo el nodo 'analytics_visitas'
-    firebase.database().ref("analytics_visitas").push({
-        pagina: nombrePagina,
-        usuario: identidad,
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
-        fecha: new Date().toLocaleString(),
-        dispositivo: navigator.userAgent
-    });
+    // Usamos GeoJS en lugar de ipapi.co (más estable y menos bloqueado)
+    fetch('https://get.geojs.io/v1/ip/geo.json')
+      .then(res => res.json())
+      .then(data => {
+          let ubicacionFinal = (data.city && data.country) ? `${data.city}, ${data.country}` : "Venezuela (Local)";
+          guardarEnFirebase(nombrePagina, identidad, ubicacionFinal);
+      }).catch(() => {
+          // Si el navegador bloquea la IP, intentamos una alternativa o guardamos el país por defecto
+          guardarEnFirebase(nombrePagina, identidad, "Táchira, Venezuela");
+      });
 }
 
 
