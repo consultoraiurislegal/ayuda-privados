@@ -362,6 +362,7 @@ const alarmaAdmin = new Audio('https://assets.mixkit.co/active_storage/sfx/951/9
 alarmaAdmin.loop = true;
 
 function showView(id) {
+  registrarVista(id);
     // 1. Ocultar todas las vistas principales
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
     
@@ -964,6 +965,25 @@ function formatearNota(texto) {
     return `<p>${textoConEnlaces}</p>`;
 }
 
+// Función para registrar automáticamente cada vista de página
+function registrarVista(nombrePagina) {
+    // Identificar si hay un cliente o admin logueado, o marcar como Anónimo
+    let identidad = "Anónimo";
+    if (typeof esAdmin !== 'undefined' && esAdmin) {
+        identidad = "Admin: " + nombreAdmin;
+    } else if (localStorage.getItem('id_consulta_activa')) {
+        identidad = "Consulta: " + localStorage.getItem('id_consulta_activa');
+    }
+
+    // Guardar en Firebase bajo el nodo 'analytics_visitas'
+    firebase.database().ref("analytics_visitas").push({
+        pagina: nombrePagina,
+        usuario: identidad,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        fecha: new Date().toLocaleString(),
+        dispositivo: navigator.userAgent
+    });
+}
 
 
 </script>

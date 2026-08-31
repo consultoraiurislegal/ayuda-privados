@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Estadísticas - Sueños de Libertad</title>
+    
+    <!-- Firebase SDK (Versión 8 compatible con tu proyecto principal) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <!-- Chart.js para las gráficas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2 { color: #1a237e; text-align: center; }
+        .admin-input { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        .card { background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #1a237e; color: white; }
+        .btn-volver { background: #1a237e; color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <button class="btn-volver" onclick="window.location.href='index.html'">← Volver al Inicio</button>
+        <h2>📊 Panel de Analíticas y Vistas</h2>
+        <p style="text-align: center; color: #666;">Control de tráfico, páginas más visitadas y dispositivos de conexión.</p>
+
+        <div class="card">
+            <label><b>Filtrar por Sección / Página:</b></label>
+            <select id="filtro-pagina" class="admin-input" onchange="cargarEstadisticas()">
+                <option value="todos">Todas las páginas</option>
+            </select>
+        </div>
+
+        <!-- Gráfica -->
+        <div class="card">
+            <canvas id="graficaVistas" style="max-height: 350px;"></canvas>
+        </div>
+
+        <!-- Historial detallado -->
+        <div class="card">
+            <h3>📋 Historial de Conexiones y Vistas</h3>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Usuario / Identidad</th>
+                            <th>Página Visitada</th>
+                            <th>Dispositivo</th>
+                        </tr>
+                    ​</thead>
+                    <tbody id="tabla-historial">
+                        <tr><td colspan="4" style="text-align: center;">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Firebase (debe coincidir con tu index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
+            authDomain: "privadosayuda-f01f1.firebaseapp.com",
+            databaseURL: "https://privadosayuda-f01f1-default-rtdb.firebaseio.com/",
+            projectId: "privadosayuda-f01f1",
+            storageBucket: "privadosayuda-f01f1.firebasestorage.app",
+            messagingSenderId: "137166482903",
+            appId: "1:137166482903:web:1221fa92f4ed9fa5902f92"
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        let miGrafica = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarEstadisticas();
+        });
+
+        function cargarEstadisticas() {
+            const filtroSeleccionado = document.getElementById('filtro-pagina').value;
+            const selectPaginas = document.getElementById('filtro-pagina');
+            const tablaHistorial = document.getElementById('tabla-historial');
+
+            db.ref("analytics_visitas").on("value", snapshot => {
+                if (!snapshot.exists()) {
+                    tablaHistorial.innerHTML = `<tr><td colspan="4" style="text-align: center;">No hay registros de visitas aún.</td></tr>`;
+                    return;
+                }
+
+                let conteoPaginas = {};
+                let opcionesSet = new Set();
+                let filasHtml = "";
+
+                snapshot.forEach(child => {
+                    const data = child.val();
+                    opcionesSet.add(data.pagina);
+
+                    // Aplicar filtro de página
+                    if (filtroSeleccionado !== "todos" && data.pagina !== filtroSeleccionado) {
+                        return;
+                    }
+
+                    // Contar visitas por página para la gráfica
+                    conteoPaginas[data.pagina] = (conteoPaginas[data.pagina] || 0) + 1;
+
+                    // Acumular filas para la tabla (ordenadas de más reciente a más antigua)
+                    filasHtml = `
+                        <tr>
+                            <td>${data.fecha || 'Sin fecha'}</td>
+                            <td>${data.usuario || 'Anónimo'}</td>
+                            <td><b>${data.pagina}</b></td>
+                            <td style="font-size: 0.8em; color: #555;" title="${data.dispositivo}">${data.dispositivo ? data.dispositivo.substring(0, 40) + '...' : 'Desconocido'}</td>
+                        </tr>
+                    ` + filasHtml;
+                });
+
+                // Actualizar el menú desplegable de filtros manteniendo la opción seleccionada
+                let opcionesHtml = `<option value="todos">Todas las páginas</option>`;
+                opcionesSet.forEach(pag => {
+                    opcionesHtml += `<option value="${pag}" ${pag === filtroSeleccionado ? 'selected' : ''}>${pag}</option>`;
+                });
+                selectPaginas.innerHTML = opcionesHtml;
+
+                tablaHistorial.innerHTML = filasHtml || `<tr><td colspan="4" style="text-align: center;">No hay datos para este filtro.</td></tr>`;
+
+                // Renderizar la gráfica con Chart.js
+                renderizarGrafica(conteoPaginas);
+            });
+        }
+
+        function renderizarGrafica(datos) {
+            const ctx = document.getElementById('graficaVistas').getContext('2d');
+            const etiquetas = Object.keys(datos);
+            const valores = Object.values(datos);
+
+            if (miGrafica) {
+                miGrafica.destroy();
+            }
+
+            miGrafica = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: etiquetas,
+                    datasets: [{
+                        label: 'Número de Vistas',
+                        data: valores,
+                        backgroundColor: 'rgba(26, 35, 126, 0.7)',
+                        borderColor: 'rgba(26, 35, 126, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Distribución de Vistas por Sección' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
