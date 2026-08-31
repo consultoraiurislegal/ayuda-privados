@@ -682,6 +682,7 @@ db.ref("servicios").on("value", s => { const box = document.getElementById("list
 
 // Al cargar la página, verificamos si hay un chat pendiente
 window.onload = () => {
+   registrarVista('view-home');
     const idGuardado = localStorage.getItem('id_consulta_activa');
     if(idGuardado) {
         consultaActualId = idGuardado;
