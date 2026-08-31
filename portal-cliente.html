@@ -209,6 +209,15 @@
         <div id="tab-admin" class="tab-content">
             <h4 style="color:#b71c1c; margin-top:0;">🛠️ Panel de Administración y Carga de Expedientes</h4>
             <p style="font-size:0.9em; color:#666; margin-bottom: 20px;">Cree credenciales, asigne abogados y cargue la información detallada del cliente y sus causas.</p>
+<div class="seccion-form" style="background: #e8f5e9; border-color: #a5d6a7;">
+    <h5 style="color: #2e7d32;">👁️ Registro de Visitas y Accesos de Usuarios</h5>
+    <p style="font-size:0.85em; color:#666;">Historial de los usuarios que han ingresado al sistema, indicando la fecha y hora aproximada.</p>
+    
+    <div id="lista-visitas-admin" style="max-height: 200px; overflow-y: auto; border: 1px solid #c8e6c9; padding: 10px; border-radius: 8px; background: white; font-size: 0.85em;">
+        <em style="color: #666;">Cargando registro de visitas...</em>
+    </div>
+</div>
+
             
             <!-- NUEVO: SELECTOR PARA CARGAR CLIENTE EXISTENTE Y MODIFICAR -->
             <div class="seccion-form" style="background: #e3f2fd; border-color: #90caf9;">
@@ -733,6 +742,8 @@ function agregarOtraFechaDetencion(btn) {
 
         if (usuarioInput === ADMIN_TEMPORAL_USER && claveInput === ADMIN_TEMPORAL_CLAVE) {
             notificarLoginTelegram(usuarioInput + " (Administrador)"); // <-- Notificación Telegram Admin
+
+registrarVisitaUsuario(usuarioInput, "Administrador General", "admin");
             localStorage.setItem('portal_sesion_usuario', usuarioInput);
             configurarAccesoUI(usuarioInput, { rol: 'admin' });
             return;
@@ -743,6 +754,7 @@ function agregarOtraFechaDetencion(btn) {
                 const datos = snapshot.val();
                 if (datos.clave === claveInput) {
                     notificarLoginTelegram(usuarioInput); // <-- Notificación Telegram Cliente
+registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente");
                     localStorage.setItem('portal_sesion_usuario', usuarioInput);
                     configurarAccesoUI(usuarioInput, datos);
                 } else {
@@ -783,6 +795,7 @@ function agregarOtraFechaDetencion(btn) {
         if (esAdmin) {
             btnTabAdmin.style.display = 'block';
             cargarListaCuentasAdmin();
+            cargarRegistroVisitasAdmin();
         } else {
             btnTabAdmin.style.display = 'none';
         }
@@ -861,7 +874,7 @@ function agregarOtraFechaDetencion(btn) {
         }
     }
 
-    // Funciones de cálculo temporal y de fechas
+      // Función mejorada para calcular años, meses y días exactos basados en fechas de calendario
     function calcularDiferenciaFechas(fechaInicioStr, fechaFinStr) {
         if (!fechaInicioStr) return { anos: 0, meses: 0, dias: 0, diasTotales: 0 };
         const inicio = new Date(fechaInicioStr);
@@ -905,7 +918,14 @@ function agregarOtraFechaDetencion(btn) {
         return fecha.toLocaleDateString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit' });
     }
 
-    function convertirDiasAñosMesesDias(totalDias) {
+    // Función actualizada: si recibe la fecha de inicio, usa el cálculo calendárico exacto.
+    function convertirDiasAñosMesesDias(totalDias, fechaInicioStr = null, fechaFinStr = null) {
+        if (fechaInicioStr) {
+            const res = calcularDiferenciaFechas(fechaInicioStr, fechaFinStr);
+            return `${res.anos} año(s), ${res.meses} mes(es), ${res.dias} día(s)`;
+        }
+        
+        // Respaldo por aproximación si no hay fecha de inicio provista
         const anos = Math.floor(totalDias / 365);
         const diasRestantes = totalDias % 365;
         const meses = Math.floor(diasRestantes / 30);
@@ -997,16 +1017,22 @@ function agregarOtraFechaDetencion(btn) {
 
         let html = "";
         d.expedientes.forEach((exp, idx) => {
-            let diasTotalesPrivacion = 0;
-            let desgloseDetencionesHTML = "";
-            if (exp.fechasDetencion && exp.fechasDetencion.length > 0) {
-                exp.fechasDetencion.forEach((tramo, tIdx) => {
-                    const resTramo = calcularDiferenciaFechas(tramo.inicio, tramo.fin);
-                    diasTotalesPrivacion += resTramo.diasTotales;
-                    desgloseDetencionesHTML += `<p style="margin:2px 0; font-size:0.85em;">• Tramo ${tIdx + 1}: ${tramo.inicio || 'N/D'} al ${tramo.fin || 'Presente'} (${resTramo.anos}a, ${resTramo.meses}m, ${resTramo.dias}d)</p>`;
-                });
-            }
-            const tiempoPrivacionFisicaFormateado = convertirDiasAñosMesesDias(diasTotalesPrivacion);
+                 let diasTotalesPrivacion = 0;
+        let desgloseDetencionesHTML = "";
+        let primerInicioDetencion = null;
+
+        if (exp.fechasDetencion && exp.fechasDetencion.length > 0) {
+            primerInicioDetencion = exp.fechasDetencion[0].inicio;
+            exp.fechasDetencion.forEach((tramo, tIdx) => {
+                const resTramo = calcularDiferenciaFechas(tramo.inicio, tramo.fin);
+                diasTotalesPrivacion += resTramo.diasTotales;
+                desgloseDetencionesHTML += `<p style="margin:2px 0; font-size:0.85em;">• Tramo ${tIdx + 1}: ${tramo.inicio || 'N/D'} al ${tramo.fin || 'Presente'} (${resTramo.anos}a, ${resTramo.meses}m, ${resTramo.dias}d)</p>`;
+            });
+        }
+        
+        // Aquí se pasa la fecha de inicio del tramo para asegurar que use el calendario real
+        const tiempoPrivacionFisicaFormateado = convertirDiasAñosMesesDias(diasTotalesPrivacion, primerInicioDetencion, null);
+
 
             let tiempoJuicioFormateado = "No aplica / No registrada";
             if (exp.fJuicio) {
@@ -1246,6 +1272,60 @@ function notificarLoginTelegram(usuario) {
     fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(texto)}&parse_mode=Markdown`);
 }
 
+  // Función para registrar la visita en Firebase
+function registrarVisitaUsuario(usuarioId, nombreCliente, rolUsuario) {
+    const timestamp = Date.now();
+    const fechaHoraActual = new Date().toLocaleString("es-ES", { 
+        timeZone: "America/Caracas", // Ajusta a tu zona horaria si es necesario
+        dateStyle: "short", 
+        timeStyle: "medium" 
+    });
+
+    // Guardar en la base de datos bajo el nodo 'visitas'
+    db.ref('visitas').push({
+        usuario: usuarioId,
+        nombre: nombreCliente || "Administrador",
+        rol: rolUsuario,
+        fechaHora: fechaHoraActual,
+        timestamp: timestamp
+    });
+}
+
+function cargarRegistroVisitasAdmin() {
+    const contenedorVisitas = document.getElementById('lista-visitas-admin');
+    if (!contenedorVisitas) return;
+
+    db.ref('visitas').limitToLast(30).on('value', (snapshot) => {
+        contenedorVisitas.innerHTML = '';
+        
+        if (!snapshot.exists()) {
+            contenedorVisitas.innerHTML = '<em style="color: #666;">No hay visitas registradas todavía.</em>';
+            return;
+        }
+
+        let visitasHtml = '';
+        // Invertir para mostrar las más recientes primero
+        const visitas = [];
+        snapshot.forEach((childSnapshot) => {
+            visitas.push(childSnapshot.val());
+        });
+        
+        visitas.reverse().forEach((v) => {
+            visitasHtml += `
+                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>👤 ${v.nombre}</strong> <small style="color: #666;">(${v.usuario} - <em>${v.rol}</em>)</small>
+                    </div>
+                    <div style="color: #2e7d32; font-weight: bold; font-size: 0.9em;">
+                        🕒 ${v.fechaHora}
+                    </div>
+                </div>
+            `;
+        });
+
+        contenedorVisitas.innerHTML = visitasHtml;
+    });
+}
 
 </script>
 
