@@ -9,6 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 
 
     <style>
@@ -184,6 +186,9 @@
 
         <!-- PESTAÑA 2: CÓMPUTOS Y LAPSOS -->
         <div id="tab-computos" class="tab-content">
+        
+`<button onclick="descargarTab2PDF()" style="background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 15px; width: 100%;">📥 Descargar Cómputos y Lapsos en PDF</button>`;
+
             <h4 style="color:var(--primary); margin-top:0;">⚖️ Cómputos de Pena y Lapsos Procesales</h4>
             <div id="contenido-computos">
                 <p style="color:#777;">Calculando cómputos, redenciones y beneficios...</p>
@@ -518,6 +523,13 @@ function agregarOtraFechaDetencion(btn) {
                     <option value="Juicio" ${datos.fase === 'Juicio' ? 'selected' : ''}>Juicio</option>
                     <option value="Ejecución" ${datos.fase === 'Ejecución' ? 'selected' : ''}>Ejecución</option>
                 </select>
+<!-- NUEVO: Campo para la Estrategia del Asistente Virtual -->
+<div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #a5d6a7;">
+    <h6 style="margin:0 0 8px 0; color:#2e7d32;">🤖 Estrategia de Voz del Asistente (Pestaña 1)</h6>
+    <label style="font-size:0.8em; font-weight:bold; color:#444;">Escribe el resumen de la estrategia que dirá la mascota:</label>
+    <textarea class="input-field exp-estrategia-voz" placeholder="Ej: La estrategia consiste en no acumular la causa..." style="height: 70px; resize: vertical; margin-bottom:0;">${datos.estrategiaVoz || ''}</textarea>
+</div>
+
 
                 <!-- SECCIÓN PANEL DE CONTROL / LIBERTAD Y BENEFICIOS -->
                 <div style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #ffe0b2;">
@@ -682,7 +694,9 @@ function agregarOtraFechaDetencion(btn) {
             });
 
             expedientes.push({
+              
                 numExpediente: card.querySelector('.exp-num').value.trim(),
+              estrategiaVoz: card.querySelector('.exp-estrategia-voz').value.trim(),
                 numFiscalia: card.querySelector('.exp-mp').value.trim(),
                 numCarcelario: card.querySelector('.exp-carcelario').value.trim(),
                 numFis: card.querySelector('.exp-num-fis').value.trim(),
@@ -883,15 +897,18 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
         }
     }
 
-      // Función mejorada para calcular años, meses y días exactos basados en fechas de calendario
+          // Función corregida para cálculo exacto de años, meses y días entre dos fechas
     function calcularDiferenciaFechas(fechaInicioStr, fechaFinStr) {
         if (!fechaInicioStr) return { anos: 0, meses: 0, dias: 0, diasTotales: 0 };
-        const inicio = new Date(fechaInicioStr);
-        const fin = fechaFinStr ? new Date(fechaFinStr) : new Date();
+        
+        let inicio = new Date(fechaInicioStr);
+        let fin = fechaFinStr ? new Date(fechaFinStr) : new Date();
 
-        let diffTime = fin - inicio;
-        if (diffTime < 0) diffTime = 0;
-        const diasTotales = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (inicio > fin) {
+            let temp = inicio;
+            inicio = fin;
+            fin = temp;
+        }
 
         let anos = fin.getFullYear() - inicio.getFullYear();
         let meses = fin.getMonth() - inicio.getMonth();
@@ -899,17 +916,22 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
 
         if (dias < 0) {
             meses--;
-            const mesAnterior = new Date(fin.getFullYear(), fin.getMonth(), 0);
+            // Obtener los días del mes anterior para un ajuste exacto
+            let mesAnterior = new Date(fin.getFullYear(), fin.getMonth(), 0);
             dias += mesAnterior.getDate();
         }
+
         if (meses < 0) {
             anos--;
             meses += 12;
         }
-        if (anos < 0) { anos = 0; meses = 0; dias = 0; }
+
+        let diffTime = fin - inicio;
+        let diasTotales = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
         return { anos, meses, dias, diasTotales };
     }
+
 
     function sumarDiasAFecha(fechaStr, diasASumar) {
         if (!fechaStr) return 'No definida';
@@ -943,6 +965,7 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
     }
 
     // Renderizar Pestaña 1: Información General
+        // Renderizar Pestaña 1: Información General
     function renderizarInformacionGeneral(usuario, d, esAdmin) {
         const contenedor = document.getElementById('contenido-info-general');
         
@@ -956,11 +979,32 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
         }
 
         let htmlExpedientes = "";
-        if (d.expedientes && d.expedientes.length > 0) {
+        let htmlAsistenteGlobal = "";
+
+        // CORRECCIÓN: Validar que d.expedientes exista y sea un array válido
+        if (d.expedientes && Array.isArray(d.expedientes) && d.expedientes.length > 0) {
             d.expedientes.forEach((exp, index) => {
                 const textoCondena = ((exp.cAno || 0) > 0 || (exp.cMes || 0) > 0 || (exp.cDia || 0) > 0)
                     ? `${exp.cAno || 0} año(s), ${exp.cMes || 0} mes(es), ${exp.cDia || 0} día(s)`
                     : 'Sin condena / Pendiente';
+
+                // Si el expediente tiene estrategia de voz, agregamos el reproductor de la mascota
+                if (exp.estrategiaVoz && !htmlAsistenteGlobal) {
+                    const textoCodificado = encodeURIComponent(exp.estrategiaVoz);
+                    htmlAsistenteGlobal = `
+                        <div style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #a5d6a7; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <div id="avatar-mascota" style="font-size: 3rem; display: inline-block; transition: transform 0.2s;">🤖</div>
+                            <h5 style="color: #2e7d32; margin: 5px 0;">Asistente Virtual Consultora Iuris</h5>
+                            <p style="font-size: 0.85em; color: #555;">Presiona para escuchar el resumen de la estrategia jurídica de tu defensa.</p>
+                            
+                            <button onclick="reproducirEstrategiaVoz('${textoCodificado}')" style="background: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95em;">
+                                ▶️ Escuchar Estrategia de Defensa
+                            </button>
+
+                            
+                        </div>
+                    `;
+                }
 
                 htmlExpedientes += `
                     <div style="background:#f8f9fa; border:1px solid #d1c4e9; padding:12px; border-radius:6px; margin-top:10px;">
@@ -985,6 +1029,7 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
         }
 
         contenedor.innerHTML = `
+            ${htmlAsistenteGlobal}
             <div class="info-bloque">
                 <h5 style="margin:0 0 8px 0; color:var(--primary);">👤 Datos Generales y del Cliente</h5>
                 <p><b>Nombre del Cliente:</b> ${d.nombreCliente || 'No especificado'}</p>
@@ -1009,6 +1054,7 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
             </div>
         `;
     }
+
 
     // Renderizar Pestaña 2: Cómputos y Lapsos
     function renderizarComputosYPena(usuario, d, esAdmin) {
@@ -1427,6 +1473,68 @@ function prepararEdicionNota(idCaso, keyNota, textoUrlEncoded) {
         }).catch(error => {
             alert("Error al actualizar la nota: " + error.message);
         });
+    }
+}
+
+function descargarTab2PDF() {
+    const elemento = document.getElementById('contenido-computos');
+
+    if (!elemento || elemento.innerText.includes("No hay expedientes") || elemento.innerText.includes("Calculando")) {
+        alert("No hay información de cómputos disponible para descargar.");
+        return;
+    }
+
+    // Resaltar temporalmente las líneas o bloques que contienen el tiempo privado de libertad
+    const bloques = elemento.querySelectorAll('.info-bloque');
+    bloques.forEach(bloque => {
+        if (bloque.innerText.includes("privado de libertad")) {
+            bloque.style.backgroundColor = "#fff9c4"; // Fondo amarillo claro de alerta
+            bloque.style.border = "2px solid #fbc02d"; // Borde resaltado
+        }
+    });
+
+    const opciones = {
+        margin:       10,
+        filename:     'computos_y_lapsos_penales.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().from(elemento).set(opciones).save().then(() => {
+        // Restaurar los estilos originales de los bloques tras la descarga
+        bloques.forEach(bloque => {
+            bloque.style.backgroundColor = "";
+            bloque.style.border = "";
+        });
+    });
+}
+  function reproducirEstrategiaVoz(textoUrlEncoded) {
+    const texto = decodeURIComponent(textoUrlEncoded);
+    
+    
+
+    // Animación de rebote de la mascota mientras "habla"
+    const mascota = document.getElementById('avatar-mascota');
+    let saltos = 0;
+    const animacion = setInterval(() => {
+        mascota.style.transform = saltos % 2 === 0 ? 'scale(1.15) rotate(-5deg)' : 'scale(1.15) rotate(5deg)';
+        saltos++;
+        if (saltos > 12) {
+            clearInterval(animacion);
+            mascota.style.transform = 'scale(1) rotate(0deg)';
+        }
+    }, 250);
+
+    // Motor de voz nativo del dispositivo (móvil o PC)
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Detener cualquier audio previo
+        const utterance = new SpeechSynthesisUtterance(texto);
+        utterance.lang = 'es-ES'; // Idioma español
+        utterance.rate = 1.0;     // Velocidad normal
+        window.speechSynthesis.speak(utterance);
+    } else {
+        alert("El navegador de este dispositivo no soporta la síntesis de voz automática, pero puedes leer la estrategia en el cuadro de texto.");
     }
 }
 
