@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
 
     <style>
         :root { --primary: #1a237e; --secondary: #c62828; --accent: #2e7d32; --bg: #f0f2f5; --white: #ffffff; }
@@ -209,9 +211,7 @@
         <div id="tab-admin" class="tab-content">
             <h4 style="color:#b71c1c; margin-top:0;">🛠️ Panel de Administración y Carga de Expedientes</h4>
             <p style="font-size:0.9em; color:#666; margin-bottom: 20px;">Cree credenciales, asigne abogados y cargue la información detallada del cliente y sus causas.</p>
-<button type="button" onclick="window.location.href='estadisticas.html'" style="background-color: #f57f17; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1em;">
-    📊 Abrir Panel de Estadísticas
-</button>
+
 
   
 <div class="seccion-form" style="background: #e8f5e9; border-color: #a5d6a7;">
@@ -236,22 +236,22 @@
                     <button type="button" onclick="cargarClienteEnFormulario()" class="btn-secundario" style="margin-bottom:0; background: #1976d2;">📥 Cargar</button>
                 </div>
             </div>
-<!-- Observaciones y Notas de Control y Seguimiento -->
-<label style="font-size:0.85em; font-weight:bold;">Observaciones y Notas de Control y Seguimiento:</label>
-<textarea id="adm-observaciones-control" class="input-field" placeholder="Ingrese una nueva nota de seguimiento..." style="height: 80px; resize: vertical;"></textarea>
+  <!-- Formulario simple para subir imagen individual y nota -->
+<div style="background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082; margin-top: 15px; margin-bottom: 15px;">
+    <h6 style="color: #f57f17; margin-top: 0;">📸 Subir Imagen Única y Nota al Storage</h6>
+    
+    <label style="font-size: 0.85em; font-weight: bold;">Seleccionar una imagen:</label>
+    <input type="file" id="input-imagen-unica" accept="image/*" class="input-field" style="background: white;">
 
-<!-- Botón dedicado para guardar la nota individualmente -->
-<button type="button" onclick="guardarNotaIndividual()" style="background-color: #007bff; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px; margin-bottom: 15px; font-weight: bold; width: 100%;">
-    💾 Guardar Nueva Nota de Seguimiento
-</button>
+    <label style="font-size: 0.85em; font-weight: bold;">Nota relacionada con la imagen:</label>
+    <textarea id="input-nota-imagen" class="input-field" placeholder="Escribe una nota para acompañar la imagen..." style="height: 60px; resize: vertical;"></textarea>
 
-<!-- Contenedor para visualizar las notas guardadas de este caso -->
-<div style="background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 15px;">
-    <span style="font-size: 0.85em; font-weight: bold; color: #333;">Aqui puedes ver todos los reportes de avance y gestion de su ezpediente penal, tambien puede descargar todos los documentos en formato pdf relacionados con su caso:</span>
-    <div id="contenedor-historial-notas" style="max-height: 150px; overflow-y: auto; margin-top: 5px; font-size: 0.85em;">
-        <em style="color: #666;">Seleccione o cargue un cliente para ver sus notas...</em>
-    </div>
+    <button type="button" onclick="guardarImagenYNotaStorage()" style="background-color: #f57f17; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;">
+        💾 Guardar en Storage y Base de Datos
+    </button>
 </div>
+
+
 
 
             <!-- BLOQUE 1: CREDENCIALES Y ACCESO -->
@@ -647,7 +647,7 @@ function agregarOtraFechaDetencion(btn) {
         } else {
             alert("No se encontraron los datos del cliente seleccionado.");
         }
-    });
+    });      
 }
 
     // Guarda o actualiza todos los campos estructurados en Firebase
@@ -790,12 +790,15 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
 
         function configurarAccesoUI(usuario, datos) {
         document.getElementById('seccion-login').style.display = 'none';
-        document.getElementById('seccion-portal').style.display = 'block';
+    document.getElementById('seccion-portal').style.display = 'block';
 
-        const esAdmin = (datos.rol === 'admin' || usuario === ADMIN_TEMPORAL_USER);
+    const esAdmin = (datos.rol === 'admin' || usuario === ADMIN_TEMPORAL_USER);
+    
+    // Guardar el rol en localStorage para que las funciones auxiliares lo reconozcan
+    localStorage.setItem('portal_rol', esAdmin ? 'admin' : 'cliente');
 
-        document.getElementById('titulo-usuario').innerText = esAdmin ? "Panel de Control Administrativo" : "Usuario: " + usuario;
-        document.getElementById('subtitulo-rol').innerText = esAdmin ? "Rol: Administrador" : "Rol: Cliente";
+    document.getElementById('titulo-usuario').innerText = esAdmin ? "Panel de Control Administrativo" : "Usuario: " + usuario;
+    document.getElementById('subtitulo-rol').innerText = esAdmin ? "Rol: Administrador" : "Rol: Cliente";
 
         const btnTabAdmin = document.getElementById('btn-tab-admin');
         if (esAdmin) {
@@ -1172,43 +1175,7 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
         localStorage.removeItem('portal_sesion_usuario');
         location.reload();
     }
-  // Función para guardar una nueva nota de forma independiente
-function guardarNotaIndividual() {
-    let idCaso = document.getElementById('adm-cedula-cliente').value.trim();
-    if (!idCaso) {
-        idCaso = document.getElementById('adm-nombre-cliente').value.trim();
-    }
-
-    if (!idCaso) {
-        alert("Por favor, ingrese o cargue la cédula o el nombre del cliente primero.");
-        return;
-    }
-
-    const textoNota = document.getElementById('adm-observaciones-control').value.trim();
-    if (!textoNota) {
-        alert("El campo de notas está vacío. Escriba un reporte antes de guardar.");
-        return;
-    }
-
-    const notasRef = db.ref('seguimiento_casos/' + idCaso + '/notas_historial');
-
-    const nuevaNota = {
-        texto: textoNota,
-        fecha: new Date().toLocaleString(),
-        abogado: document.getElementById('adm-abogado') ? document.getElementById('adm-abogado').value : "Dr. Charles Reyes"
-    };
-
-    notasRef.push(nuevaNota)
-    .then(() => {
-        alert("¡Nota de seguimiento guardada con éxito!");
-        document.getElementById('adm-observaciones-control').value = ""; 
-        cargarHistorialNotas(idCaso); 
-    })
-    .catch((error) => {
-        console.error("Error al guardar la nota: ", error);
-        alert("Hubo un error al guardar la nota en la base de datos.");
-    });
-}
+  
 
 // Función actualizada para mostrar el historial de notas aplicando el formato de texto y enlaces
 function cargarHistorialNotas(idCaso) {
@@ -1219,7 +1186,8 @@ function cargarHistorialNotas(idCaso) {
     }
 
     const notasRef = db.ref('seguimiento_casos/' + idCaso + '/notas_historial');
-    
+    const usuarioEsAdmin = esAdministrador(); // Evalúa el rol aquí
+
     notasRef.once('value', (snapshot) => {
         contenedor.innerHTML = "";
         if (snapshot.exists()) {
@@ -1228,15 +1196,28 @@ function cargarHistorialNotas(idCaso) {
             
             Object.keys(notas).forEach((key) => {
                 const item = notas[key];
-                // Aplicamos la función para procesar negritas, saltos de línea y enlaces de Google Drive
                 const textoFormateado = formatearTextoNota(item.texto);
                 
-                html += `
-                    <div style="background: white; padding: 6px 8px; margin-bottom: 5px; border-left: 3px solid #007bff; border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                        <div style="font-size: 0.75em; color: #555; margin-bottom: 2px;">
-                            <b>📅 ${item.fecha}</b> | 👤 <i>${item.abogado || 'Abogado'}</i>
+                // Los botones solo se crean si el usuario es administrador
+                let botonesAccion = "";
+                if (usuarioEsAdmin) {
+                    botonesAccion = `
+                        <div>
+                            <button onclick="prepararEdicionNota('${idCaso}', '${key}', \`${encodeURIComponent(item.texto)}\`)" style="background: #ffc107; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 0.75em; margin-right: 4px;" title="Editar nota">✏️</button>
+                            <button onclick="eliminarNotaHistorial('${idCaso}', '${key}')" style="background: var(--secondary); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 0.75em;" title="Eliminar nota">🗑️</button>
                         </div>
-                        <div>${textoFormateado}</div>
+                    `;
+                }
+                
+                html += `
+                    <div style="background: white; padding: 8px 12px; margin-bottom: 8px; border-left: 3px solid #007bff; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" id="nota-${key}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <div style="font-size: 0.75em; color: #555;">
+                                <b>📅 ${item.fecha}</b> | 👤 <i>${item.abogado || 'Abogado'}</i>
+                            </div>
+                            ${botonesAccion}
+                        </div>
+                        <div class="contenido-texto-nota">${textoFormateado}</div>
                     </div>`;
             });
             contenedor.innerHTML = html;
@@ -1245,30 +1226,49 @@ function cargarHistorialNotas(idCaso) {
         }
     });
 }
-// Función de apoyo para procesar formato, párrafos, negrillas, emojis y enlaces
+
+
+
+
+
+// Función actualizada para formatear el texto y vincular el botón de descarga con JavaScript
 function formatearTextoNota(texto) {
     if (!texto) return '';
     
-    // 1. Escapar caracteres especiales de HTML por seguridad básica
     let textoEscapado = texto
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+        .replace(/>/g, "&gt;")
+        .replace(/\n/g, '<br>');
     
-    // 2. Convertir saltos de línea (\n) en <br> para respetar la separación de párrafos
-    let textoConParrafos = textoEscapado.replace(/\n/g, '<br>');
+    let textoConNegrilla = textoEscapado.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
     
-    // 3. Convertir formato de negrilla tipo Markdown (**texto**) a etiquetas <b>
-    let textoConNegrilla = textoConParrafos.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-    
-    // 4. Detectar URLs y transformarlas en enlaces clickeables de Google Drive (los emojis funcionan de forma nativa)
     const expRegular = /(https?:\/\/[^\s]+)/g;
     let textoFinal = textoConNegrilla.replace(expRegular, function(url) {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: underline;">Ver documento en PDF 📄</a>`;
+        let nombreArchivo = "documento_adjunto.pdf";
+        try {
+            const urlObj = new URL(url);
+            const pathSegments = urlObj.pathname.split('/');
+            const lastSegment = pathSegments[pathSegments.length - 1];
+            if (lastSegment) {
+                nombreArchivo = decodeURIComponent(lastSegment.split('?')[0]);
+            }
+        } catch (e) {}
+
+        return `
+            <div style="margin-top: 8px; padding: 8px; background: #f1f3f5; border-radius: 6px; display: flex; gap: 10px; align-items: center;">
+                <span style="font-size: 1.2rem;">📎</span>
+                <a href="${url}" target="_blank" rel="noopener noreferrer" style="background: #1a237e; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold;">👁️ Visualizar</a>
+         
+            </div>
+        `;
     });
     
     return textoFinal;
 }
+
+
+
 
 function notificarLoginTelegram(usuario) {
     const TELEGRAM_TOKEN = "8017218933:AAEyBytMfs9MQ4avkjquRR1gOuKp-K4RDk8";
@@ -1332,6 +1332,104 @@ function cargarRegistroVisitasAdmin() {
         contenedorVisitas.innerHTML = visitasHtml;
     });
 }
+  function guardarImagenYNotaStorage() {
+    let idCaso = document.getElementById('adm-cedula-cliente').value.trim();
+    if (!idCaso) {
+        idCaso = document.getElementById('adm-nombre-cliente').value.trim();
+    }
+
+    if (!idCaso) {
+        alert("Por favor, seleccione o cargue un cliente primero.");
+        return;
+    }
+
+    const archivoInput = document.getElementById('input-imagen-unica');
+    const textoNota = document.getElementById('input-nota-imagen').value.trim();
+    const archivo = archivoInput.files[0];
+
+    const abogadoActual = document.getElementById('adm-abogado') ? document.getElementById('adm-abogado').value : "Dr. Charles Reyes";
+    const fechaActual = new Date().toLocaleString();
+
+    // Permitir guardar nota sin imagen, o imagen con/sin nota
+    if (!archivo && !textoNota) {
+        alert("Debe seleccionar una imagen o escribir una nota antes de guardar.");
+        return;
+    }
+
+    if (archivo) {
+        // Subir a Firebase Storage usando la ruta permitida en tus reglas: documentos_clientes/
+        const storageRef = firebase.storage().ref(`documentos_clientes/${idCaso}_${Date.now()}_${archivo.name}`);
+        
+        storageRef.put(archivo).then(snapshot => {
+            return snapshot.ref.getDownloadURL();
+        }).then(downloadURL => {
+            // Guardar en la Realtime Database incluyendo el enlace de la imagen
+            const notaCompleta = textoNota ? `${textoNota}\n${downloadURL}` : downloadURL;
+            guardarNotaEnDB(idCaso, notaCompleta, abogadoActual, fechaActual);
+        }).catch(error => {
+            alert("Error al subir la imagen a Storage: " + error.message);
+        });
+    } else {
+        // Guardar solo la nota si no se seleccionó ninguna imagen
+        guardarNotaEnDB(idCaso, textoNota, abogadoActual, fechaActual);
+    }
+}
+
+function guardarNotaEnDB(idCaso, texto, abogado, fecha) {
+    const notasRef = db.ref('seguimiento_casos/' + idCaso + '/notas_historial');
+    const nuevaNota = {
+        texto: texto,
+        fecha: fecha,
+        abogado: abogado
+    };
+
+    notasRef.push(nuevaNota).then(() => {
+        alert("¡Guardado exitosamente!");
+        document.getElementById('input-imagen-unica').value = "";
+        document.getElementById('input-nota-imagen').value = "";
+        cargarHistorialNotas(idCaso);
+    }).catch(error => {
+        alert("Error al guardar en la base de datos: " + error.message);
+    });
+}
+
+function esAdministrador() {
+    const sesionActual = localStorage.getItem('portal_sesion_usuario');
+    const rolActual = localStorage.getItem('portal_rol');
+    return sesionActual === 'admin' || rolActual === 'admin';
+}
+
+
+function eliminarNotaHistorial(idCaso, keyNota) {
+    if (confirm("¿Está seguro de que desea eliminar esta nota o reporte?")) {
+        db.ref('seguimiento_casos/' + idCaso + '/notas_historial/' + keyNota).remove()
+            .then(() => {
+                alert("Nota eliminada correctamente.");
+                cargarHistorialNotas(idCaso);
+            })
+            .catch(error => {
+                alert("Error al eliminar la nota: " + error.message);
+            });
+    }
+}
+
+function prepararEdicionNota(idCaso, keyNota, textoUrlEncoded) {
+    const textoActual = decodeURIComponent(textoUrlEncoded);
+    const nuevoTexto = prompt("Actualice el texto de la nota o reporte:", textoActual);
+    
+    if (nuevoTexto !== null && nuevoTexto.trim() !== "") {
+        db.ref('seguimiento_casos/' + idCaso + '/notas_historial/' + keyNota).update({
+            texto: nuevoTexto.trim(),
+            fechaModificacion: new Date().toLocaleString()
+        }).then(() => {
+            alert("Nota actualizada correctamente.");
+            cargarHistorialNotas(idCaso);
+        }).catch(error => {
+            alert("Error al actualizar la nota: " + error.message);
+        });
+    }
+}
+
 
 </script>
 
