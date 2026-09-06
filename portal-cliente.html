@@ -201,6 +201,24 @@
             <h4 style="color:var(--primary); margin-top:0;">📊 Seguimiento y Control del Expediente</h4>
             <p style="font-size:0.9em; color:#666; margin-bottom: 15px;">Registro de actas, actuaciones y notas de control del caso.</p>
             
+            <!-- Barra de Progreso del Juicio (Requerimiento 4) -->
+            <div id="contenedor-progreso-juicio" style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #c5cae9; margin-bottom: 15px; display: none;">
+                <h5 style="margin-top: 0; color: var(--primary); font-size: 0.95em;">📈 Progreso del Juicio (Evacuación de Pruebas)</h5>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 5px;">
+                    <span id="texto-progreso-juicio">Pruebas evacuadas/incorporadas: 0 de 0</span>
+                    <span id="porcentaje-progreso-juicio" style="font-weight: bold; color: var(--primary);">0%</span>
+                </div>
+                <progress id="barra-progreso-juicio" value="0" max="100" style="width: 100%; height: 20px; border-radius: 5px;"></progress>
+            </div>
+
+            <!-- Contenedor para Pruebas en Fase de Juicio (Vista Cliente en Pestaña 3 / Requerimiento 3) -->
+            <div id="contenedor-pruebas-cliente-tab3" style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #c5cae9; margin-bottom: 15px; display: none;">
+                <h5 style="margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 8px;">⚖️ Resumen de Pruebas en Fase de Juicio</h5>
+                <div id="tabla-pruebas-cliente-content" style="overflow-x: auto;">
+                    <!-- Se inyecta la tabla de pruebas para cliente -->
+                </div>
+            </div>
+
             <!-- Contenedor Único del Historial -->
             <div style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #c5cae9; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
                 <h5 style="margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 8px;">📋 Aqui puedes ver todos los reportes de avance y gestion de su expediente penal, tambien puede descargar todos los documentos en formato pdf relacionados con su caso</h5>
@@ -466,6 +484,129 @@ function agregarOtraFechaDetencion(btn) {
     container.insertAdjacentHTML('beforeend', html);
 }
 
+    // Funciones auxiliares y de renderizado para Gestión Dinámica de Pruebas (Requerimiento 1, 2, 3)
+    function renderizarBloquePruebasJuicio(pruebasArr = []) {
+        let html = '<div class="pruebas-juicio-container" style="display: flex; flex-direction: column; gap: 12px;">';
+        if (!pruebasArr || pruebasArr.length === 0) {
+            pruebasArr = [{ organo: '', tipo: 'Documental', estatus: 'Por evacuar', cuadro: '', pdfUrl: '' }];
+        }
+        pruebasArr.forEach((p, idx) => {
+            html += `
+                <div class="sub-seccion-dinamica prueba-item" style="background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #90caf9; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 13px; font-weight: bold; color: var(--primary);">Prueba de Juicio #${idx + 1}</span>
+                        <button type="button" onclick="this.closest('.prueba-item').remove()" style="background: var(--secondary); color: white; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">🗑️ Eliminar</button>
+                    </div>
+                    
+                    <label style="font-size: 11px; font-weight: bold;">Órgano de prueba:</label>
+                    <input type="text" class="input-field p-organo" placeholder="Nombre o identificación del órgano de prueba" value="${p.organo || ''}" style="margin-bottom: 8px;">
+                    
+                    <div class="grid-2" style="margin-bottom: 8px;">
+                        <div>
+                            <label style="font-size: 11px; font-weight: bold;">Tipo de prueba:</label>
+                            <select class="input-field p-tipo" style="margin-bottom: 0;">
+                                <option value="Documental" ${p.tipo === 'Documental' ? 'selected' : ''}>Documental</option>
+                                <option value="Testimonial" ${p.tipo === 'Testimonial' ? 'selected' : ''}>Testimonial</option>
+                                <option value="Experticia" ${p.tipo === 'Experticia' ? 'selected' : ''}>Experticia</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: bold;">Estatus de la prueba:</label>
+                            <select class="input-field p-estatus" style="margin-bottom: 0;">
+                                <option value="Por evacuar" ${p.estatus === 'Por evacuar' ? 'selected' : ''}>Por evacuar</option>
+                                <option value="Por incorporar" ${p.estatus === 'Por incorporar' ? 'selected' : ''}>Por incorporar</option>
+                                <option value="Evacuada" ${p.estatus === 'Evacuada' ? 'selected' : ''}>Evacuada</option>
+                                <option value="Incorporada" ${p.estatus === 'Incorporada' ? 'selected' : ''}>Incorporada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <label style="font-size: 11px; font-weight: bold;">Cuadro descriptivo (Resultados detallados de evacuación/incorporación):</label>
+                    <textarea class="input-field p-cuadro" placeholder="Describa los detalles o resultados..." style="height: 50px; resize: vertical; margin-bottom: 8px;">${p.cuadro || ''}</textarea>
+
+                    <label style="font-size: 11px; font-weight: bold;">Adjuntar archivo PDF (Anexos):</label>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                        <input type="file" accept="application/pdf" class="input-field p-archivo-pdf" style="margin-bottom: 0; background: #fff;">
+                        ${p.pdfUrl ? `<a href="${p.pdfUrl}" target="_blank" class="p-pdf-link" style="background: #1a237e; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8em; white-space: nowrap;">👁️ Ver PDF actual</a>` : ''}
+                    </div>
+                    <input type="hidden" class="p-pdf-url" value="${p.pdfUrl || ''}">
+                </div>
+            `;
+        });
+        html += '</div>';
+        html += `<button type="button" onclick="agregarOtraPruebaJuicio(this)" class="btn-secundario" style="margin-top: 8px; padding: 6px 12px; font-size: 0.85em;">➕ Agregar otra prueba</button>`;
+        return html;
+    }
+
+    function agregarOtraPruebaJuicio(btn) {
+        const container = btn.previousElementSibling;
+        const index = container.querySelectorAll('.prueba-item').length + 1;
+        const html = `
+            <div class="sub-seccion-dinamica prueba-item" style="background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #90caf9; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 13px; font-weight: bold; color: var(--primary);">Prueba de Juicio #${index}</span>
+                    <button type="button" onclick="this.closest('.prueba-item').remove()" style="background: var(--secondary); color: white; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">🗑️ Eliminar</button>
+                </div>
+                
+                <label style="font-size: 11px; font-weight: bold;">Órgano de prueba:</label>
+                <input type="text" class="input-field p-organo" placeholder="Nombre o identificación del órgano de prueba" value="" style="margin-bottom: 8px;">
+                
+                <div class="grid-2" style="margin-bottom: 8px;">
+                    <div>
+                        <label style="font-size: 11px; font-weight: bold;">Tipo de prueba:</label>
+                        <select class="input-field p-tipo" style="margin-bottom: 0;">
+                            <option value="Documental">Documental</option>
+                            <option value="Testimonial">Testimonial</option>
+                            <option value="Experticia">Experticia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: bold;">Estatus de la prueba:</label>
+                        <select class="input-field p-estatus" style="margin-bottom: 0;">
+                            <option value="Por evacuar">Por evacuar</option>
+                            <option value="Por incorporar">Por incorporar</option>
+                            <option value="Evacuada">Evacuada</option>
+                            <option value="Incorporada">Incorporada</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label style="font-size: 11px; font-weight: bold;">Cuadro descriptivo (Resultados detallados de evacuación/incorporación):</label>
+                <textarea class="input-field p-cuadro" placeholder="Describa los detalles o resultados..." style="height: 50px; resize: vertical; margin-bottom: 8px;"></textarea>
+
+                <label style="font-size: 11px; font-weight: bold;">Adjuntar archivo PDF (Anexos):</label>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                    <input type="file" accept="application/pdf" class="input-field p-archivo-pdf" style="margin-bottom: 0; background: #fff;">
+                </div>
+                <input type="hidden" class="p-pdf-url" value="">
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    function manejarCambioFaseJuicio(select) {
+        const card = select.closest('.expediente-card');
+        let contenedorJuicio = card.querySelector('.contenedor-juicio-dinamico');
+        if (select.value === 'Juicio') {
+            if (!contenedorJuicio) {
+                contenedorJuicio = document.createElement('div');
+                contenedorJuicio.className = 'contenedor-juicio-dinamico';
+                contenedorJuicio.style.cssText = "background: #e8eaf6; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #7986cb;";
+                contenedorJuicio.innerHTML = `
+                    <h6 style="margin: 0 0 8px 0; color: var(--primary);">⚖️ Gestión de Pruebas en Fase de Juicio</h6>
+                    ${renderizarBloquePruebasJuicio()}
+                `;
+                select.insertAdjacentElement('afterend', contenedorJuicio);
+            } else {
+                contenedorJuicio.style.display = 'block';
+            }
+        } else {
+            if (contenedorJuicio) {
+                contenedorJuicio.style.display = 'none';
+            }
+        }
+    }
+
     // Función para añadir bloques de expedientes dinámicamente en el Admin
     function agregarCampoExpediente(datos = {}) {
         const contenedor = document.getElementById('contenedor-expedientes-dinamicos');
@@ -473,6 +614,8 @@ function agregarOtraFechaDetencion(btn) {
 
         const htmlFechas = renderizarBloqueFechasDetencion(datos.fechasDetencion);
         const htmlRedenciones = renderizarBloqueRedenciones(datos.redenciones);
+        const mostrarJuicioInicial = datos.fase === 'Juicio';
+        const htmlPruebasJuicio = renderizarBloquePruebasJuicio(datos.pruebasJuicio);
 
         const html = `
             <div class="expediente-card" id="${idUnico}">
@@ -517,12 +660,17 @@ function agregarOtraFechaDetencion(btn) {
                 </div>
 
                 <label style="font-size:0.8em; font-weight:bold; color:#444;">Fase Procesal Actual:</label>
-                <select class="input-field exp-fase">
+                <select class="input-field exp-fase" onchange="manejarCambioFaseJuicio(this)">
                     <option value="Preparatoria" ${datos.fase === 'Preparatoria' ? 'selected' : ''}>Preparatoria</option>
                     <option value="Intermedia" ${datos.fase === 'Intermedia' ? 'selected' : ''}>Intermedia</option>
                     <option value="Juicio" ${datos.fase === 'Juicio' ? 'selected' : ''}>Juicio</option>
                     <option value="Ejecución" ${datos.fase === 'Ejecución' ? 'selected' : ''}>Ejecución</option>
                 </select>
+
+                <div class="contenedor-juicio-dinamico" style="background: #e8eaf6; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #7986cb; display: ${mostrarJuicioInicial ? 'block' : 'none'};">
+                    <h6 style="margin: 0 0 8px 0; color: var(--primary);">⚖️ Gestión de Pruebas en Fase de Juicio</h6>
+                    ${htmlPruebasJuicio}
+                </div>
 <!-- NUEVO: Campo para la Estrategia del Asistente Virtual -->
 <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #a5d6a7;">
     <h6 style="margin:0 0 8px 0; color:#2e7d32;">🤖 Estrategia de Voz del Asistente (Pestaña 1)</h6>
@@ -662,8 +810,8 @@ function agregarOtraFechaDetencion(btn) {
     });      
 }
 
-    // Guarda o actualiza todos los campos estructurados en Firebase
-    function guardarExpedienteCompleto() {
+    // Guarda o actualiza todos los campos estructurados en Firebase (con subida robusta a Storage para archivos PDF de pruebas - Requerimiento 2 y 3)
+    async function guardarExpedienteCompleto() {
         const usuario = document.getElementById('adm-usuario').value.trim();
         const clave = document.getElementById('adm-clave').value.trim();
         const rol = document.getElementById('adm-rol').value;
@@ -674,7 +822,9 @@ function agregarOtraFechaDetencion(btn) {
         }
 
         const expedientes = [];
-        document.querySelectorAll('.expediente-card').forEach(card => {
+        const tarjetasExp = document.querySelectorAll('.expediente-card');
+
+        for (const card of tarjetasExp) {
             const fechasDetencion = [];
             card.querySelectorAll('.fecha-det-item').forEach(item => {
                 fechasDetencion.push({
@@ -692,6 +842,33 @@ function agregarOtraFechaDetencion(btn) {
                     fecha: item.querySelector('.r-fecha').value
                 });
             });
+
+            const pruebasJuicio = [];
+            const pruebaItems = card.querySelectorAll('.prueba-item');
+            for (const pItem of pruebaItems) {
+                const archivoInput = pItem.querySelector('.p-archivo-pdf');
+                let pdfUrl = pItem.querySelector('.p-pdf-url').value;
+
+                if (archivoInput && archivoInput.files && archivoInput.files[0]) {
+                    const archivo = archivoInput.files[0];
+                    try {
+                        const storageRef = firebase.storage().ref(`documentos_clientes/prueba_${Date.now()}_${archivo.name}`);
+                        const snapshot = await storageRef.put(archivo);
+                        pdfUrl = await snapshot.ref.getDownloadURL();
+                    } catch (err) {
+                        console.error("Error al subir PDF de prueba a Storage:", err);
+                        alert("Advertencia: No se pudo subir un archivo PDF de prueba, pero se guardará el resto de la información.");
+                    }
+                }
+
+                pruebasJuicio.push({
+                    organo: pItem.querySelector('.p-organo').value.trim(),
+                    tipo: pItem.querySelector('.p-tipo').value,
+                    estatus: pItem.querySelector('.p-estatus').value,
+                    cuadro: pItem.querySelector('.p-cuadro').value.trim(),
+                    pdfUrl: pdfUrl
+                });
+            }
 
             expedientes.push({
               
@@ -715,6 +892,7 @@ function agregarOtraFechaDetencion(btn) {
                 cMes: parseInt(card.querySelector('.exp-cmes').value) || 0,
                 cDia: parseInt(card.querySelector('.exp-cdia').value) || 0,
                 fase: card.querySelector('.exp-fase').value,
+                pruebasJuicio: pruebasJuicio,
                 enLibertad: card.querySelector('.exp-en-libertad').value,
                 fechaLibertad: card.querySelector('.exp-fecha-libertad').value,
                 tipoLibertad: card.querySelector('.exp-tipo-libertad').value,
@@ -724,7 +902,7 @@ function agregarOtraFechaDetencion(btn) {
                 benCondicional: card.querySelector('.exp-ben-condicional').checked,
                 redenciones: redenciones
             });
-        });
+        }
 
         const payload = {
             usuario: usuario,
@@ -825,6 +1003,7 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
 
         renderizarInformacionGeneral(usuario, datos, esAdmin);
         renderizarComputosYPena(usuario, datos, esAdmin);
+        renderizarMonitoreoPruebasTab3(datos, esAdmin);
         
         // Carga automática del historial en la tercera pestaña basada en el usuario/cliente ingresado
         let idCasoBusqueda = "";
@@ -841,6 +1020,89 @@ registrarVisitaUsuario(usuarioInput, datos.nombreCliente, datos.rol || "cliente"
 
         if (esAdmin && document.querySelectorAll('.expediente-card').length === 0) {
             agregarCampoExpediente();
+        }
+    }
+
+    // Renderizar visualización de pruebas y barra de progreso en Pestaña 3 (Requerimiento 3 y 4)
+    function renderizarMonitoreoPruebasTab3(d, esAdmin) {
+        const contenedorPruebasCliente = document.getElementById('contenedor-pruebas-cliente-tab3');
+        const tablaContent = document.getElementById('tabla-pruebas-cliente-content');
+        const contenedorProgreso = document.getElementById('contenedor-progreso-juicio');
+        const barraProgreso = document.getElementById('barra-progreso-juicio');
+        const textoProgreso = document.getElementById('texto-progreso-juicio');
+        const porcProgreso = document.getElementById('porcentaje-progreso-juicio');
+
+        if (!d.expedientes || !Array.isArray(d.expedientes) || d.expedientes.length === 0) {
+            if (contenedorPruebasCliente) contenedorPruebasCliente.style.display = 'none';
+            if (contenedorProgreso) contenedorProgreso.style.display = 'none';
+            return;
+        }
+
+        let totalPruebasGlobal = 0;
+        let totalCompletadasGlobal = 0;
+        let htmlTablaPruebas = "";
+        let tieneJuicio = false;
+
+        d.expedientes.forEach((exp, idx) => {
+            if (exp.fase === 'Juicio') {
+                tieneJuicio = true;
+            }
+            if (exp.pruebasJuicio && Array.isArray(exp.pruebasJuicio) && exp.pruebasJuicio.length > 0) {
+                exp.pruebasJuicio.forEach((p, pIdx) => {
+                    totalPruebasGlobal++;
+                    if (p.estatus === 'Evacuada' || p.estatus === 'Incorporada') {
+                        totalCompletadasGlobal++;
+                    }
+
+                    let enlacePdfHtml = p.pdfUrl ? `<a href="${p.pdfUrl}" target="_blank" rel="noopener noreferrer" style="background: #1a237e; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-size: 0.8em; font-weight: bold;">👁️ Ver PDF</a>` : '<span style="color: #888; font-size: 0.8em;">Sin PDF</span>';
+
+                    htmlTablaPruebas += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 8px;"><b>Exp #${idx + 1}</b>: ${p.organo || 'N/D'}</td>
+                            <td style="padding: 8px;">${p.tipo || 'N/D'}</td>
+                            <td style="padding: 8px;"><span style="font-weight: bold; color: ${p.estatus === 'Evacuada' || p.estatus === 'Incorporada' ? '#2e7d32' : '#c62828'};">${p.estatus || 'N/D'}</span><br><small>${p.cuadro || ''}</small></td>
+                            <td style="padding: 8px; text-align: center;">${enlacePdfHtml}</td>
+                        </tr>
+                    `;
+                });
+            }
+        });
+
+        // Barra de progreso (Requerimiento 4)
+        if (totalPruebasGlobal > 0) {
+            const porcentaje = Math.round((totalCompletadasGlobal / totalPruebasGlobal) * 100);
+            barraProgreso.value = porcentaje;
+            textoProgreso.innerText = `Pruebas evacuadas/incorporadas: ${totalCompletadasGlobal} de ${totalPruebasGlobal}`;
+            porcProgreso.innerText = `${porcentaje}%`;
+            contenedorProgreso.style.display = 'block';
+        } else {
+            contenedorProgreso.style.display = 'none';
+        }
+
+        // Visibilidad para Administrador y Cliente en Pestaña 3 (Requerimiento 3)
+        if (esAdmin || tieneJuicio) {
+            if (htmlTablaPruebas !== "") {
+                tablaContent.innerHTML = `
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                        <thead>
+                            <tr style="background: #f1f3f5; border-bottom: 2px solid #ccc; text-align: left;">
+                                <th style="padding: 8px;">1. Presentada (Órgano de prueba)</th>
+                                <th style="padding: 8px;">2. Tipo de prueba</th>
+                                <th style="padding: 8px;">3. Resultado / Estatus</th>
+                                <th style="padding: 8px; text-align: center;">4. Enlace PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${htmlTablaPruebas}
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                tablaContent.innerHTML = '<em style="color: #666;">No hay pruebas registradas para la fase de juicio en este expediente.</em>';
+            }
+            contenedorPruebasCliente.style.display = 'block';
+        } else {
+            contenedorPruebasCliente.style.display = 'none';
         }
     }
 
