@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.consultoraiurislegal.twa",
+        "sha256_cert_fingerprints": ["96:E5:A4:32:21:AA:BF:B7:A3:A6:29:28:25:10:4C:46:74:40:9E:80:C5:F5:4C:6A:DA:49:28:FB:E3:71:1B:91"]
+      }
+    }]
