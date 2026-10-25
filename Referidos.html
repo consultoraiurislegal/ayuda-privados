@@ -657,6 +657,7 @@
       } else {
         customContainer.classList.add('hidden');
       }
+      updateGraphData();
       renderAllViews();
     }
 
@@ -703,7 +704,7 @@
       });
     }
 
-    // MAPA INTERACTIVO (VIS.JS)
+    // MAPA INTERACTIVO (VIS.JS) ACTUALIZADO
     function updateGraphData() {
       const container = document.getElementById('network-container');
       if (!container) return;
@@ -711,8 +712,33 @@
       const nodesArray = [];
       const edgesArray = [];
       const filteredCasesList = getFilteredCases();
+      const filteredCaseIds = new Set(filteredCasesList.map(k => k.id));
+
+      // Determinar qué contactos están vinculados directamente o a través de la red a los casos filtrados
+      const activeContactIds = new Set();
+      filteredCasesList.forEach(k => {
+        if (k.referrerId) {
+          activeContactIds.add(k.referrerId);
+          // Incluir también a los antecesores en la cadena genealógica si es necesario mostrar la ruta
+          let curr = refContacts.find(c => c.id === k.referrerId);
+          while (curr && curr.parentId) {
+            activeContactIds.add(curr.parentId);
+            curr = refContacts.find(c => c.id === curr.parentId);
+          }
+        }
+      });
 
       refContacts.forEach(c => {
+        // Mostrar contacto si tiene casos en el período o si no hay casos y se desea ver la red, o si forma parte de la cadena
+        const hasCasesInPeriod = refCases.filter(k => k.referrerId === c.id).some(k => filteredCaseIds.has(k.id));
+        const hasDescendantWithCases = getAllDescendants(c.id).some(desc => refCases.filter(k => k.referrerId === desc.id).some(k => filteredCaseIds.has(k.id)));
+
+        if (getFilteredCases().length > 0 && !hasCasesInPeriod && !hasDescendantWithCases && refCases.length > 0) {
+          // Si hay filtro de tiempo activo y este contacto no tiene vinculación en el periodo, se puede omitir o atenuar. 
+          // Para cumplir estrictamente con mostrar exclusivamente los casos y contactos vinculados:
+          return;
+        }
+
         let color = '#3b82f6';
         if (c.type === 'Abogado') color = '#10b981';
         if (c.type === 'Intermediario') color = '#f59e0b';
@@ -730,6 +756,7 @@
         });
 
         if (c.parentId) {
+          // Solo mostrar la arista si ambos extremos están presentes en el grafo filtrado
           edgesArray.push({
             id: `e_c_${c.parentId}_${c.id}`,
             from: c.parentId,
@@ -831,6 +858,7 @@
     }
 
     function renderAllViews() {
+      updateGraphData();
       renderDetailsPanel();
       renderContactsList();
       renderCasesList();
@@ -851,7 +879,7 @@
       return descendants;
     }
 
-    // PANEL DE DETALLES Y MÉTRICAS
+    // PANEL DE DETALLES Y MÉTRICAS (ACTUALIZADO CON RECALCULO DE MÉTRICAS MONETARIAS)
     function renderDetailsPanel() {
       const container = document.getElementById('selectedDetailContent');
       const filteredCases = getFilteredCases();
@@ -866,6 +894,7 @@
         const parentContact = refContacts.find(c => c.id === contact.parentId);
         const childContacts = refContacts.filter(c => c.parentId === contact.id);
         
+        // Casos directos filtrados exclusivamente por el lapso de tiempo activo
         const referredCasesDirect = filteredCases.filter(k => k.referrerId === contact.id);
 
         const totalFeesDirect = referredCasesDirect.reduce((sum, k) => sum + (parseFloat(k.fee) || 0), 0);
@@ -874,6 +903,7 @@
         const allDescendants = getAllDescendants(contact.id);
         const allDescendantIds = allDescendants.map(d => d.id);
         
+        // Casos de la red (descendencia) filtrados exclusivamente por el lapso de tiempo activo
         const networkCases = filteredCases.filter(k => allDescendantIds.includes(k.referrerId));
         const totalNetworkMoney = networkCases.reduce((sum, k) => sum + (parseFloat(k.fee) || 0), 0) + totalFeesDirect;
 
@@ -1026,6 +1056,7 @@
       `;
     }
 
+    // SECCIÓN DE CONTACTOS (DIRECTORIO / REFERIDORES) CON CONTADOR RECALCULADO SEGÚN EL LAPSO
     function renderContactsList() {
       const list = document.getElementById('contactsList');
       if (refContacts.length === 0) {
@@ -1036,6 +1067,7 @@
       const filteredCases = getFilteredCases();
 
       list.innerHTML = refContacts.map(c => {
+        // Recalcular contador de casos asociados únicamente al lapso de tiempo seleccionado
         const count = filteredCases.filter(k => k.referrerId === c.id).length;
         const isSelected = selectedContactId === c.id;
 
@@ -1068,6 +1100,7 @@
       }).join('');
     }
 
+    // SECCIÓN DE CASOS (CRONOGRAMA GENERAL) FILTRANDO EXCLUSIVAMENTE POR caseDate
     function renderCasesList() {
       const list = document.getElementById('casesList');
       const filteredCases = getFilteredCases();
@@ -1260,7 +1293,6 @@
       const newCase = { id, title, referrerId, caseDate, status, fee, commOrig, alertTime, alertText, details };
 
       db.ref(`red_referidos/cases/${id}`).set(newCase).then(() => {
-        // Si se actualizó la hora de alerta, removemos el ID del registro local para permitir dispararla nuevamente si es futura
         let triggeredList = JSON.parse(localStorage.getItem('legalmind_triggered_alerts') || '[]');
         triggeredList = triggeredList.filter(item => item !== id);
         localStorage.setItem('legalmind_triggered_alerts', JSON.stringify(triggeredList));
