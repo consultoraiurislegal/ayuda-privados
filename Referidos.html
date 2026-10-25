@@ -30,12 +30,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Firebase SDKs (v8.10.0) -->
+  <!-- Firebase SDKs (v8.10.0 - Base, Auth, Database, Storage sin FCM) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
 
   <script>
     tailwind.config = {
@@ -103,7 +102,7 @@
         <h1 class="font-heading font-bold text-lg md:text-xl text-white tracking-wide leading-tight flex items-center gap-2">
           LegalMind <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-sans font-medium">Red de Referidos</span>
         </h1>
-        <p class="text-xs text-slate-400 hidden sm:block">Sincronización en tiempo real y Notificaciones Push</p>
+        <p class="text-xs text-slate-400 hidden sm:block">Sincronización en tiempo real y Alertas Locales</p>
       </div>
     </div>
 
@@ -391,7 +390,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Fecha/Hora Alerta Push</label>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Fecha/Hora Alerta Local</label>
             <input type="datetime-local" id="caseAlertTime" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
           </div>
           <div>
@@ -418,9 +417,9 @@
     </div>
   </div>
 
-  <!-- SCRIPT Y CONEXIÓN FIREBASE + FCM PUSH -->
+  <!-- SCRIPT Y CONEXIÓN FIREBASE + GESTOR DE ALERTAS LOCALES -->
   <script>
-    // CONFIGURACIÓN EXACTA DE FIREBASE SDK 8.10.0
+    // CONFIGURACIÓN DE FIREBASE SDK 8.10.0
     const firebaseConfig = {
       apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
       authDomain: "privadosayuda-f01f1.firebaseapp.com",
@@ -436,39 +435,15 @@
     }
     const db = firebase.database();
 
-    // REGISTRO DE SERVICE WORKER COMPATIBLE CON FIREBASE PUSH Y FIREFOX
+    // REGISTRO DE SERVICE WORKER PARA CACHÉ Y NOTIFICACIONES NATIVAS EN ANDROID WEBVIEW
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swCode = `
-          importScripts('https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js');
-          importScripts('https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js');
-
-          firebase.initializeApp({
-            apiKey: "AIzaSyB_mCIiDNydYbspCYOEiBiXlOF3og_Va70",
-            authDomain: "privadosayuda-f01f1.firebaseapp.com",
-            databaseURL: "https://privadosayuda-f01f1-default-rtdb.firebaseio.com/",
-            projectId: "privadosayuda-f01f1",
-            storageBucket: "privadosayuda-f01f1.firebasestorage.app",
-            messagingSenderId: "137166482903",
-            appId: "1:137166482903:web:1221fa92f4ed9fa5902f92"
-          });
-
-          const messaging = firebase.messaging();
-
           self.addEventListener('install', (e) => { self.skipWaiting(); });
           self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
 
           self.addEventListener('fetch', (e) => {
             e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-          });
-
-          messaging.onBackgroundMessage(function(payload) {
-            const notificationTitle = payload.notification ? payload.notification.title : 'LegalMind - Red de Referidos';
-            const notificationOptions = {
-              body: payload.notification ? payload.notification.body : 'Tienes una nueva actualización en la red de casos.',
-              icon: 'https://placehold.co/192x192/f59e0b/030712?text=LM'
-            };
-            self.registration.showNotification(notificationTitle, notificationOptions);
           });
         `;
         const blob = new Blob([swCode], { type: 'application/javascript' });
@@ -485,35 +460,67 @@
     let deferredPrompt = null;
 
     window.onload = function() {
-      // Seteo de fecha actual por defecto en modal
       document.getElementById('caseDate').value = new Date().toISOString().slice(0,10);
       
       setupPWA();
       initFirebaseSync();
-      inicializarNotificacionesFCM();
+      solicitarPermisosNotificacion();
+      iniciarGestorDeAlertasLocales();
     };
 
-    // SOLICITUD DE PERMISO Y REGISTRO DE TOKEN FCM PARA NOTIFICACIONES PUSH
-    function inicializarNotificacionesFCM() {
-      if (!('Notification' in window)) return;
+    // SOLICITUD DE PERMISO PARA NOTIFICACIONES LOCALES
+    function solicitarPermisosNotificacion() {
+      if ('Notification' in window && Notification.permission !== 'granted') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            console.log('Permiso de notificaciones concedido.');
+          }
+        });
+      }
+    }
 
-      const messaging = firebase.messaging();
-      messaging.usePublicVapidKey("BNyuVrTaP0ZNQw2vyR7I6dk2ekl04iu-sMElyy0FwUZzQlfurgbzQ8XTngwTgFGVH4bdS3j9Vj7rdpM8ATpTApQ");
+    // GESTOR AUTÓNOMO DE ALERTAS LOCALES (VERIFICA CADA 30 SEGUNDOS)
+    function iniciarGestorDeAlertasLocales() {
+      setInterval(() => {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+        if (!refCases || refCases.length === 0) return;
 
-      Notification.requestPermission().then((permission) => {
-        if (permission === 'granted') {
-          messaging.getToken().then((currentToken) => {
-            if (currentToken) {
-              db.ref(`fcm_tokens/dispositivo_referidos`).set({
-                token: currentToken,
-                actualizado: new Date().toLocaleString('es-VE')
-              });
+        const ahora = new Date();
+        let triggeredList = JSON.parse(localStorage.getItem('legalmind_triggered_alerts') || '[]');
+        let actualizado = false;
+
+        refCases.forEach(kase => {
+          if (kase.alertTime) {
+            const fechaAlerta = new Date(kase.alertTime);
+            // Si la hora actual es mayor o igual a la hora de alerta y no se ha disparado aún
+            if (ahora >= fechaAlerta && !triggeredList.includes(kase.id)) {
+              const titulo = `Alerta de Caso: ${kase.title}`;
+              const cuerpo = kase.alertText || 'Tienes una tarea o vencimiento programado para este caso.';
+              
+              // Disparar notificación vía Service Worker si está disponible, o fallback a Notification
+              if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+                navigator.serviceWorker.ready.then(reg => {
+                  reg.showNotification(titulo, {
+                    body: cuerpo,
+                    icon: 'https://placehold.co/192x192/f59e0b/030712?text=LM',
+                    badge: 'https://placehold.co/96x96/f59e0b/030712?text=LM',
+                    vibrate: [200, 100, 200]
+                  });
+                });
+              } else {
+                new Notification(titulo, { body: cuerpo, icon: 'https://placehold.co/192x192/f59e0b/030712?text=LM' });
+              }
+
+              triggeredList.push(kase.id);
+              actualizado = true;
             }
-          }).catch((err) => {
-            console.warn('Error al recuperar token FCM:', err);
-          });
+          }
+        });
+
+        if (actualizado) {
+          localStorage.setItem('legalmind_triggered_alerts', JSON.stringify(triggeredList));
         }
-      });
+      }, 30000);
     }
 
     function setupPWA() {
@@ -844,7 +851,7 @@
       return descendants;
     }
 
-    // PANEL DE DETALLES Y MÉTRICAS (MÉTRICAS COMPLETAS DE NODO Y RED)
+    // PANEL DE DETALLES Y MÉTRICAS
     function renderDetailsPanel() {
       const container = document.getElementById('selectedDetailContent');
       const filteredCases = getFilteredCases();
@@ -859,17 +866,14 @@
         const parentContact = refContacts.find(c => c.id === contact.parentId);
         const childContacts = refContacts.filter(c => c.parentId === contact.id);
         
-        // Casos directos filtrados por lapso
         const referredCasesDirect = filteredCases.filter(k => k.referrerId === contact.id);
 
         const totalFeesDirect = referredCasesDirect.reduce((sum, k) => sum + (parseFloat(k.fee) || 0), 0);
         const totalCommsDirect = referredCasesDirect.reduce((sum, k) => sum + ((parseFloat(k.fee) || 0) * (parseFloat(k.commOrig) || 10) / 100), 0);
 
-        // Toda la descendencia (red)
         const allDescendants = getAllDescendants(contact.id);
         const allDescendantIds = allDescendants.map(d => d.id);
         
-        // Casos generados por toda la descendencia en el lapso
         const networkCases = filteredCases.filter(k => allDescendantIds.includes(k.referrerId));
         const totalNetworkMoney = networkCases.reduce((sum, k) => sum + (parseFloat(k.fee) || 0), 0) + totalFeesDirect;
 
@@ -900,7 +904,6 @@
 
             ${contact.notes ? `<p class="text-xs text-slate-300 italic bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">${contact.notes}</p>` : ''}
 
-            <!-- RESUMEN DE IMPACTO Y COMISIONES -->
             <div>
               <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
                 <span>Métricas en Período Seleccionado</span>
@@ -926,7 +929,6 @@
               </div>
             </div>
 
-            <!-- MÉTRICA DE LA RED COMPLETA (INCLUYENDO DESCENDENCIA) -->
             <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
               <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Generado por Toda su Red (Descendencia)</div>
               <div class="flex items-center justify-between">
@@ -958,6 +960,7 @@
                       <div class="flex-1 pr-2">
                         <div class="font-semibold text-xs text-white">${k.title}</div>
                         <div class="text-[10px] text-slate-400">${k.status} • Recibido: ${k.caseDate || 'Sin fecha'}</div>
+                        ${k.alertTime ? `<div class="text-[10px] text-amber-400 mt-0.5"><i class="fa-solid fa-bell mr-1"></i>Alerta: ${k.alertTime.replace('T', ' ')}</div>` : ''}
                       </div>
                       <div class="text-right flex items-center gap-2">
                         <div>
@@ -1094,9 +1097,10 @@
                 </div>
               </div>
             </div>
-            <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-2">
+            <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
               <span onclick="selectNodeFromList('${k.referrerId}')" class="cursor-pointer hover:text-amber-300"><i class="fa-solid fa-user-tag mr-1 text-amber-400"></i> ${refName}</span>
               ${k.caseDate ? `<span class="text-[10px] text-slate-500">| Recibido: ${k.caseDate}</span>` : ''}
+              ${k.alertTime ? `<span class="text-[10px] text-amber-400 font-medium ml-auto"><i class="fa-solid fa-bell mr-1"></i>${k.alertTime.replace('T', ' ')}</span>` : ''}
             </div>
             <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/60 text-[10px]">
               <span class="text-amber-400/90">${k.status}</span>
@@ -1256,6 +1260,11 @@
       const newCase = { id, title, referrerId, caseDate, status, fee, commOrig, alertTime, alertText, details };
 
       db.ref(`red_referidos/cases/${id}`).set(newCase).then(() => {
+        // Si se actualizó la hora de alerta, removemos el ID del registro local para permitir dispararla nuevamente si es futura
+        let triggeredList = JSON.parse(localStorage.getItem('legalmind_triggered_alerts') || '[]');
+        triggeredList = triggeredList.filter(item => item !== id);
+        localStorage.setItem('legalmind_triggered_alerts', JSON.stringify(triggeredList));
+
         closeModal('modalCase');
       });
     }
