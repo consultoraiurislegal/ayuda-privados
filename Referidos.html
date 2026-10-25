@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-slate-950 text-slate-100">
 <head>
@@ -415,8 +416,8 @@
             <input type="number" id="caseFee" min="0" step="0.01" value="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">% Comisión Referidor</label>
-            <input type="number" id="caseCommOrig" min="0" step="0.1" value="10" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+            <label class="block text-xs font-medium text-slate-300 mb-1">Monto de Comisión ($)</label>
+            <input type="number" id="caseCommOrig" min="0" step="0.01" value="150" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
           </div>
         </div>
 
@@ -615,7 +616,7 @@
         "c2": { id: "c2", name: "Lic. María Rodríguez", type: "Intermediario", parentId: "c1", phone: "0414-1234567", email: "maria@gmail.com", notes: "Referidora activa San Cristóbal" }
       };
       const initialCases = {
-        "k1": { id: "k1", title: "Causa Penal CPO - V-18234981", referrerId: "c2", caseDate: today, status: "En Proceso", fee: 1500, commOrig: 10, details: "Revisión de medida y traslado" }
+        "k1": { id: "k1", title: "Causa Penal CPO - V-18234981", referrerId: "c2", caseDate: today, status: "En Proceso", fee: 1500, commOrig: 150, details: "Revisión de medida y traslado" }
       };
       db.ref("red_referidos").set({ contacts: initialContacts, cases: initialCases });
     }
@@ -921,7 +922,7 @@
         const referredCasesDirect = filteredCases.filter(k => k.referrerId === contact.id);
 
         const totalFeesDirect = referredCasesDirect.reduce((sum, k) => sum + (parseFloat(k.fee) || 0), 0);
-        const totalCommsDirect = referredCasesDirect.reduce((sum, k) => sum + ((parseFloat(k.fee) || 0) * (parseFloat(k.commOrig) || 10) / 100), 0);
+        const totalCommsDirect = referredCasesDirect.reduce((sum, k) => sum + (parseFloat(k.commOrig) || 0), 0);
 
         const allDescendants = getAllDescendants(contact.id);
         const allDescendantIds = allDescendants.map(d => d.id);
@@ -1017,7 +1018,7 @@
                       <div class="text-right flex items-center gap-2">
                         <div>
                           <span class="text-xs font-bold text-blue-400">$${parseFloat(k.fee || 0).toLocaleString()}</span>
-                          <div class="text-[10px] text-amber-400">Com. ${k.commOrig || 10}%</div>
+                          <div class="text-[10px] text-amber-400">Com. $${parseFloat(k.commOrig || 0).toLocaleString()}</div>
                         </div>
                         <div class="flex items-center gap-1 border-l border-slate-800 pl-2">
                           <button onclick="editCase('${k.id}')" class="p-1.5 text-slate-400 hover:text-amber-400 rounded transition" title="Editar Caso">
@@ -1052,11 +1053,7 @@
       const totalCases = filteredCases.length;
       const totalReferrers = refContacts.length;
       const totalGross = filteredCases.reduce((acc, k) => acc + (parseFloat(k.fee) || 0), 0);
-      const totalCommissions = filteredCases.reduce((acc, k) => {
-        const fee = parseFloat(k.fee) || 0;
-        const commOrig = parseFloat(k.commOrig) || 10;
-        return acc + (fee * (commOrig / 100));
-      }, 0);
+      const totalCommissions = filteredCases.reduce((acc, k) => acc + (parseFloat(k.commOrig) || 0), 0);
       const totalNet = totalGross - totalCommissions;
 
       container.innerHTML = `
@@ -1213,7 +1210,7 @@
             </div>
             <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/60 text-[10px]">
               <span class="text-amber-400/90">${k.status}</span>
-              <span class="text-slate-400">Comisión: ${k.commOrig || 10}%</span>
+              <span class="text-slate-400">Comisión: $${parseFloat(k.commOrig || 0).toLocaleString()}</span>
             </div>
           </div>
         `;
@@ -1359,7 +1356,7 @@
       const caseDate = document.getElementById('caseDate').value;
       const status = document.getElementById('caseStatus').value;
       const fee = parseFloat(document.getElementById('caseFee').value) || 0;
-      const commOrig = parseFloat(document.getElementById('caseCommOrig').value) || 10;
+      const commOrig = parseFloat(document.getElementById('caseCommOrig').value) || 0;
       const alertTime = document.getElementById('caseAlertTime').value;
       const alertText = document.getElementById('caseAlertText').value.trim();
       const details = document.getElementById('caseDetails').value.trim();
@@ -1389,7 +1386,7 @@
       document.getElementById('caseDate').value = kase.caseDate || new Date().toISOString().slice(0,10);
       document.getElementById('caseStatus').value = kase.status || 'En Proceso';
       document.getElementById('caseFee').value = kase.fee || 0;
-      document.getElementById('caseCommOrig').value = kase.commOrig || 10;
+      document.getElementById('caseCommOrig').value = kase.commOrig || 0;
       document.getElementById('caseAlertTime').value = kase.alertTime || '';
       document.getElementById('caseAlertText').value = kase.alertText || '';
       document.getElementById('caseDetails').value = kase.details || '';
@@ -1415,3 +1412,4 @@
   </script>
 </body>
 </html>
+```
