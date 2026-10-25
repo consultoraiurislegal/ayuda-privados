@@ -405,9 +405,14 @@
           <textarea id="caseDetails" rows="3" placeholder="Observaciones, síntesis del asunto, estrategia..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
         </div>
 
-        <div class="flex justify-end space-x-3 pt-3 border-t border-slate-800">
-          <button type="button" onclick="closeModal('modalCase')" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800">Cancelar</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-lg shadow-amber-500/20">Guardar Caso</button>
+        <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+          <button type="button" id="btnDeleteCaseInModal" onclick="deleteCaseFromModal()" class="hidden px-3 py-2 rounded-xl text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/40 border border-red-900/30 transition">
+            <i class="fa-solid fa-trash-can mr-1"></i> Eliminar
+          </button>
+          <div class="flex space-x-2 ml-auto">
+            <button type="button" onclick="closeModal('modalCase')" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800">Cancelar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-lg shadow-amber-500/20">Guardar Caso</button>
+          </div>
         </div>
       </form>
     </div>
@@ -876,9 +881,14 @@
                 <h2 class="font-heading font-bold text-xl text-white mt-1">${contact.name}</h2>
                 <p class="text-xs text-slate-400">${contact.phone || 'Sin teléfono'} • ${contact.email || 'Sin email'}</p>
               </div>
-              <button onclick="editContact('${contact.id}')" class="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-800 transition" title="Editar Contacto">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
+              <div class="flex items-center gap-1">
+                <button onclick="editContact('${contact.id}')" class="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-800 transition" title="Editar Contacto">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button onclick="deleteContact('${contact.id}')" class="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800 transition" title="Eliminar Contacto">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
             </div>
 
             ${parentContact ? `
@@ -945,13 +955,23 @@
                 <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
                   ${referredCasesDirect.map(k => `
                     <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 flex justify-between items-center">
-                      <div>
+                      <div class="flex-1 pr-2">
                         <div class="font-semibold text-xs text-white">${k.title}</div>
                         <div class="text-[10px] text-slate-400">${k.status} • Recibido: ${k.caseDate || 'Sin fecha'}</div>
                       </div>
-                      <div class="text-right">
-                        <span class="text-xs font-bold text-blue-400">$${parseFloat(k.fee || 0).toLocaleString()}</span>
-                        <div class="text-[10px] text-amber-400">Com. ${k.commOrig || 10}%</div>
+                      <div class="text-right flex items-center gap-2">
+                        <div>
+                          <span class="text-xs font-bold text-blue-400">$${parseFloat(k.fee || 0).toLocaleString()}</span>
+                          <div class="text-[10px] text-amber-400">Com. ${k.commOrig || 10}%</div>
+                        </div>
+                        <div class="flex items-center gap-1 border-l border-slate-800 pl-2">
+                          <button onclick="editCase('${k.id}')" class="p-1.5 text-slate-400 hover:text-amber-400 rounded transition" title="Editar Caso">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                          </button>
+                          <button onclick="deleteCase('${k.id}')" class="p-1.5 text-slate-400 hover:text-red-400 rounded transition" title="Eliminar Caso">
+                            <i class="fa-solid fa-trash-can"></i>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   `).join('')}
@@ -1017,9 +1037,9 @@
         const isSelected = selectedContactId === c.id;
 
         return `
-          <div onclick="selectNodeFromList('${c.id}')" class="p-3 rounded-xl border ${isSelected ? 'border-amber-500 bg-amber-500/10' : 'border-slate-800 bg-slate-950/70 hover:border-slate-700'} transition cursor-pointer flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-xs">
+          <div class="p-3 rounded-xl border ${isSelected ? 'border-amber-500 bg-amber-500/10' : 'border-slate-800 bg-slate-950/70 hover:border-slate-700'} transition flex items-center justify-between">
+            <div onclick="selectNodeFromList('${c.id}')" class="flex items-center space-x-3 cursor-pointer flex-1">
+              <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-xs shrink-0">
                 ${c.name.substring(0, 2).toUpperCase()}
               </div>
               <div>
@@ -1027,10 +1047,18 @@
                 <div class="text-[10px] text-slate-400">${c.type} • ${c.phone || 'Sin número'}</div>
               </div>
             </div>
-            <div class="text-right">
+            <div class="text-right flex items-center gap-2">
               <span class="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
                 ${count} casos
               </span>
+              <div class="flex items-center gap-1 border-l border-slate-800 pl-2">
+                <button onclick="editContact('${c.id}')" class="p-1 text-slate-400 hover:text-amber-400 rounded transition" title="Editar Contacto">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button onclick="deleteContact('${c.id}')" class="p-1 text-slate-400 hover:text-red-400 rounded transition" title="Eliminar Contacto">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -1051,13 +1079,23 @@
         const refName = referrer ? referrer.name : 'Desconocido';
 
         return `
-          <div onclick="selectNodeFromList('${k.referrerId}')" class="p-3 rounded-xl border border-slate-800 bg-slate-950/70 hover:border-slate-700 transition cursor-pointer">
+          <div class="p-3 rounded-xl border border-slate-800 bg-slate-950/70 hover:border-slate-700 transition">
             <div class="flex justify-between items-start">
-              <div class="font-semibold text-xs text-slate-200">${k.title}</div>
-              <span class="text-xs font-bold text-blue-400">$${parseFloat(k.fee || 0).toLocaleString()}</span>
+              <div onclick="selectNodeFromList('${k.referrerId}')" class="font-semibold text-xs text-slate-200 cursor-pointer hover:text-amber-400 flex-1">${k.title}</div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-blue-400">$${parseFloat(k.fee || 0).toLocaleString()}</span>
+                <div class="flex items-center gap-1 border-l border-slate-800 pl-2">
+                  <button onclick="editCase('${k.id}')" class="p-1 text-slate-400 hover:text-amber-400 rounded transition" title="Editar Caso">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button onclick="deleteCase('${k.id}')" class="p-1 text-slate-400 hover:text-red-400 rounded transition" title="Eliminar Caso">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
             </div>
             <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-2">
-              <span><i class="fa-solid fa-user-tag mr-1 text-amber-400"></i> ${refName}</span>
+              <span onclick="selectNodeFromList('${k.referrerId}')" class="cursor-pointer hover:text-amber-300"><i class="fa-solid fa-user-tag mr-1 text-amber-400"></i> ${refName}</span>
               ${k.caseDate ? `<span class="text-[10px] text-slate-500">| Recibido: ${k.caseDate}</span>` : ''}
             </div>
             <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/60 text-[10px]">
@@ -1121,6 +1159,7 @@
         document.getElementById('caseForm').reset();
         document.getElementById('caseId').value = '';
         document.getElementById('caseDate').value = new Date().toISOString().slice(0,10);
+        document.getElementById('btnDeleteCaseInModal').classList.add('hidden');
         document.getElementById('modalCaseTitle').innerHTML = '<i class="fa-solid fa-folder-plus text-amber-400"></i> Registrar Nuevo Caso';
       }
     }
@@ -1225,6 +1264,8 @@
       const kase = refCases.find(k => k.id === id);
       if (!kase) return;
 
+      populateParentAndReferrerSelects();
+
       document.getElementById('caseId').value = kase.id;
       document.getElementById('caseName').value = kase.title;
       document.getElementById('caseReferrer').value = kase.referrerId || '';
@@ -1236,8 +1277,17 @@
       document.getElementById('caseAlertText').value = kase.alertText || '';
       document.getElementById('caseDetails').value = kase.details || '';
 
+      document.getElementById('btnDeleteCaseInModal').classList.remove('hidden');
       document.getElementById('modalCaseTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Caso';
       openModal('modalCase');
+    }
+
+    function deleteCaseFromModal() {
+      const id = document.getElementById('caseId').value;
+      if (id) {
+        deleteCase(id);
+        closeModal('modalCase');
+      }
     }
 
     function deleteCase(id) {
