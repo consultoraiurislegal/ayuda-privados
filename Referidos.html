@@ -260,7 +260,7 @@
           </div>
         </div>
 
-        <!-- TAB 3: LISTA DE CASOS EN ORDEN CRONOLÓGICO -->
+        <!-- TAB 3: LISTA DE CASOS EN ORDEN CRONOLÓGICO CON FILTROS COMBINADOS Y SCROLL -->
         <div id="tabCases" class="hidden space-y-4">
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cronograma General de Casos</h3>
@@ -268,7 +268,39 @@
               <i class="fa-solid fa-plus"></i> Nuevo
             </button>
           </div>
-          <div id="casesList" class="space-y-4">
+
+          <!-- Controles de Filtros Combinados -->
+          <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+            <div class="font-medium text-slate-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-filter text-amber-400"></i> Filtros Combinados de Casos
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-1">Temporalidad</label>
+                <select id="caseListTimeFilter" onchange="renderCasesList()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-slate-200 focus:outline-none focus:border-amber-500">
+                  <option value="all">Histórico Total</option>
+                  <option value="week">Esta Semana</option>
+                  <option value="month">Este Mes</option>
+                  <option value="year">Este Año</option>
+                  <option value="custom">Rango Global</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-1">Estatus del Caso</label>
+                <select id="caseListStatusFilter" onchange="renderCasesList()" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-slate-200 focus:outline-none focus:border-amber-500">
+                  <option value="all">Todos los Estatus</option>
+                  <option value="Prospecto">Prospecto</option>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En Proceso">En Proceso</option>
+                  <option value="Finalizado con Éxito">Finalizado con Éxito</option>
+                  <option value="Finalizado Fallido">Finalizado Fallido</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contenedor con desplazamiento (scroll) -->
+          <div id="casesList" class="space-y-3 max-h-[calc(100vh-22rem)] overflow-y-auto pr-1">
             <!-- JS Render -->
           </div>
         </div>
@@ -492,12 +524,10 @@
         refCases.forEach(kase => {
           if (kase.alertTime) {
             const fechaAlerta = new Date(kase.alertTime);
-            // Si la hora actual es mayor o igual a la hora de alerta y no se ha disparado aún
             if (ahora >= fechaAlerta && !triggeredList.includes(kase.id)) {
               const titulo = `Alerta de Caso: ${kase.title}`;
               const cuerpo = kase.alertText || 'Tienes una tarea o vencimiento programado para este caso.';
               
-              // Disparar notificación vía Service Worker si está disponible, o fallback a Notification
               if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
                 navigator.serviceWorker.ready.then(reg => {
                   reg.showNotification(titulo, {
@@ -714,12 +744,10 @@
       const filteredCasesList = getFilteredCases();
       const filteredCaseIds = new Set(filteredCasesList.map(k => k.id));
 
-      // Determinar qué contactos están vinculados directamente o a través de la red a los casos filtrados
       const activeContactIds = new Set();
       filteredCasesList.forEach(k => {
         if (k.referrerId) {
           activeContactIds.add(k.referrerId);
-          // Incluir también a los antecesores en la cadena genealógica si es necesario mostrar la ruta
           let curr = refContacts.find(c => c.id === k.referrerId);
           while (curr && curr.parentId) {
             activeContactIds.add(curr.parentId);
@@ -729,13 +757,10 @@
       });
 
       refContacts.forEach(c => {
-        // Mostrar contacto si tiene casos en el período o si no hay casos y se desea ver la red, o si forma parte de la cadena
         const hasCasesInPeriod = refCases.filter(k => k.referrerId === c.id).some(k => filteredCaseIds.has(k.id));
         const hasDescendantWithCases = getAllDescendants(c.id).some(desc => refCases.filter(k => k.referrerId === desc.id).some(k => filteredCaseIds.has(k.id)));
 
         if (getFilteredCases().length > 0 && !hasCasesInPeriod && !hasDescendantWithCases && refCases.length > 0) {
-          // Si hay filtro de tiempo activo y este contacto no tiene vinculación en el periodo, se puede omitir o atenuar. 
-          // Para cumplir estrictamente con mostrar exclusivamente los casos y contactos vinculados:
           return;
         }
 
@@ -756,7 +781,6 @@
         });
 
         if (c.parentId) {
-          // Solo mostrar la arista si ambos extremos están presentes en el grafo filtrado
           edgesArray.push({
             id: `e_c_${c.parentId}_${c.id}`,
             from: c.parentId,
@@ -879,7 +903,7 @@
       return descendants;
     }
 
-    // PANEL DE DETALLES Y MÉTRICAS (ACTUALIZADO CON RECALCULO DE MÉTRICAS MONETARIAS)
+    // PANEL DE DETALLES Y MÉTRICAS GENERALES DE LA RED
     function renderDetailsPanel() {
       const container = document.getElementById('selectedDetailContent');
       const filteredCases = getFilteredCases();
@@ -894,7 +918,6 @@
         const parentContact = refContacts.find(c => c.id === contact.parentId);
         const childContacts = refContacts.filter(c => c.parentId === contact.id);
         
-        // Casos directos filtrados exclusivamente por el lapso de tiempo activo
         const referredCasesDirect = filteredCases.filter(k => k.referrerId === contact.id);
 
         const totalFeesDirect = referredCasesDirect.reduce((sum, k) => sum + (parseFloat(k.fee) || 0), 0);
@@ -903,7 +926,6 @@
         const allDescendants = getAllDescendants(contact.id);
         const allDescendantIds = allDescendants.map(d => d.id);
         
-        // Casos de la red (descendencia) filtrados exclusivamente por el lapso de tiempo activo
         const networkCases = filteredCases.filter(k => allDescendantIds.includes(k.referrerId));
         const totalNetworkMoney = networkCases.reduce((sum, k) => sum + (parseFloat(k.fee) || 0), 0) + totalFeesDirect;
 
@@ -1023,32 +1045,50 @@
       renderGeneralOverview(container);
     }
 
+    // RENDERIZADO DE LAS 5 MÉTRICAS CLAVE EN EL RESUMEN GENERAL DE LA RED
     function renderGeneralOverview(container) {
       const filteredCases = getFilteredCases();
+      
       const totalCases = filteredCases.length;
-      const totalContacts = refContacts.length;
-      const totalMoney = filteredCases.reduce((acc, k) => acc + (parseFloat(k.fee) || 0), 0);
+      const totalReferrers = refContacts.length;
+      const totalGross = filteredCases.reduce((acc, k) => acc + (parseFloat(k.fee) || 0), 0);
+      const totalCommissions = filteredCases.reduce((acc, k) => {
+        const fee = parseFloat(k.fee) || 0;
+        const commOrig = parseFloat(k.commOrig) || 10;
+        return acc + (fee * (commOrig / 100));
+      }, 0);
+      const totalNet = totalGross - totalCommissions;
 
       container.innerHTML = `
         <div class="space-y-4">
-          <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-4 shadow-xl">
-            <h2 class="font-heading font-bold text-lg text-white mb-1 flex items-center gap-2">
-              <i class="fa-solid fa-chart-line text-amber-400"></i> Resumen General de la Red
-            </h2>
-            <p class="text-xs text-slate-400 mb-4">Sincronizado en tiempo real con Consultora Iuris (Firebase).</p>
+          <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
+            <div>
+              <h2 class="font-heading font-bold text-lg text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-amber-400"></i> Resumen General de la Red
+              </h2>
+              <p class="text-xs text-slate-400">Indicadores clave calculados en función del filtro de temporalidad activo.</p>
+            </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-                <div class="text-[11px] text-slate-400">Honorarios Despacho</div>
-                <div class="font-heading font-bold text-xl text-emerald-400 mt-1">$${totalMoney.toLocaleString()}</div>
+                <div class="text-[11px] text-slate-400">Dinero Bruto Despacho</div>
+                <div class="font-heading font-bold text-lg text-emerald-400 mt-1">$${totalGross.toLocaleString()}</div>
               </div>
               <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-                <div class="text-[11px] text-slate-400">Casos Activos Lapso</div>
-                <div class="font-heading font-bold text-xl text-blue-400 mt-1">${totalCases}</div>
+                <div class="text-[11px] text-slate-400">Pago en Comisiones</div>
+                <div class="font-heading font-bold text-lg text-amber-400 mt-1">$${totalCommissions.toLocaleString()}</div>
               </div>
               <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 col-span-2">
-                <div class="text-[11px] text-slate-400">Red Total de Contactos</div>
-                <div class="font-heading font-bold text-xl text-amber-400 mt-1">${totalContacts} Referidores</div>
+                <div class="text-[11px] text-slate-400">Neto para el Despacho</div>
+                <div class="font-heading font-bold text-xl text-blue-400 mt-1">$${totalNet.toLocaleString()}</div>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                <div class="text-[11px] text-slate-400">Total Referidores</div>
+                <div class="font-heading font-bold text-lg text-purple-400 mt-1">${totalReferrers}</div>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                <div class="text-[11px] text-slate-400">Total Casos (Lapso)</div>
+                <div class="font-heading font-bold text-lg text-cyan-400 mt-1">${totalCases}</div>
               </div>
             </div>
           </div>
@@ -1056,7 +1096,7 @@
       `;
     }
 
-    // SECCIÓN DE CONTACTOS (DIRECTORIO / REFERIDORES) CON CONTADOR RECALCULADO SEGÚN EL LAPSO
+    // SECCIÓN DE CONTACTOS (DIRECTORIO / REFERIDORES)
     function renderContactsList() {
       const list = document.getElementById('contactsList');
       if (refContacts.length === 0) {
@@ -1067,7 +1107,6 @@
       const filteredCases = getFilteredCases();
 
       list.innerHTML = refContacts.map(c => {
-        // Recalcular contador de casos asociados únicamente al lapso de tiempo seleccionado
         const count = filteredCases.filter(k => k.referrerId === c.id).length;
         const isSelected = selectedContactId === c.id;
 
@@ -1100,13 +1139,50 @@
       }).join('');
     }
 
-    // SECCIÓN DE CASOS (CRONOGRAMA GENERAL) FILTRANDO EXCLUSIVAMENTE POR caseDate
+    // SECCIÓN DE CASOS CON FILTROS COMBINADOS (TEMPORALIDAD + ESTATUS) Y SCROLL
     function renderCasesList() {
       const list = document.getElementById('casesList');
-      const filteredCases = getFilteredCases();
+      if (!list) return;
+
+      const timeFilter = document.getElementById('caseListTimeFilter') ? document.getElementById('caseListTimeFilter').value : 'all';
+      const statusFilter = document.getElementById('caseListStatusFilter') ? document.getElementById('caseListStatusFilter').value : 'all';
+
+      let casesToFilter = refCases;
+      if (timeFilter === 'custom') {
+        casesToFilter = getFilteredCases();
+      } else if (timeFilter !== 'all') {
+        const now = new Date();
+        let startDate = null;
+        if (timeFilter === 'week') {
+          const dayOfWeek = now.getDay() || 7;
+          startDate = new Date(now);
+          startDate.setDate(now.getDate() - dayOfWeek + 1);
+          startDate.setHours(0,0,0,0);
+        } else if (timeFilter === 'month') {
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        } else if (timeFilter === 'year') {
+          startDate = new Date(now.getFullYear(), 0, 1);
+        }
+        casesToFilter = refCases.filter(k => {
+          const cDateStr = k.caseDate || (k.alertTime ? k.alertTime.slice(0, 10) : null);
+          if (!cDateStr) return true;
+          const cDate = new Date(cDateStr + 'T00:00:00');
+          return startDate ? cDate >= startDate : true;
+        });
+      } else {
+        casesToFilter = refCases;
+      }
+
+      const filteredCases = casesToFilter.filter(k => {
+        if (statusFilter !== 'all' && k.status !== statusFilter) return false;
+        return true;
+      });
+
+      const badgeElem = document.getElementById('caseCountBadge');
+      if (badgeElem) badgeElem.textContent = filteredCases.length;
 
       if (filteredCases.length === 0) {
-        list.innerHTML = '<p class="text-xs text-slate-500 py-4 text-center">No hay casos en este lapso de tiempo.</p>';
+        list.innerHTML = '<p class="text-xs text-slate-500 py-4 text-center">No hay casos que coincidan con los filtros seleccionados.</p>';
         return;
       }
 
